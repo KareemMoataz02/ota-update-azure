@@ -50,9 +50,13 @@ runcmd:
   # ---------------------------------------------------------------------------
   # Clone the Private Repository and Set Up HMI Server
   # ---------------------------------------------------------------------------
-  - cd /opt
-  - git clone git@github.com:KareemMoataz02/ota-update-azure.git
-  - cd ota-update-azure/hmi_server
+  # Pre-create the target directory and adjust ownership so azureuser can write to it.
+  - sudo mkdir -p /opt/ota-update-azure
+  - sudo chown azureuser:azureuser /opt/ota-update-azure
+  # Change into the target directory and clone the repository as azureuser.
+  - sudo -u azureuser bash -c "cd /opt/ota-update-azure && git clone git@github.com:KareemMoataz02/ota-update-azure.git ."
+  # Change into the hmi_server subdirectory, install Python requirements.
+  - cd /opt/ota-update-azure/hmi_server
   - pip3 install -r requirements.txt
   - |
     cat << 'EOF' | sudo tee /etc/systemd/system/hmi_server.service
