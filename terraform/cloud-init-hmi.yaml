@@ -5,17 +5,54 @@ packages:
   - python3-dev
   - unixodbc-dev
   - git
+  - openssh-client
 
 runcmd:
+  # ---------------------------------------------------------------------------
+  # SSH Setup for Accessing a Private GitHub Repository:
+  #
+  # Steps to acquire your SSH key:
+  # 1. On your local machine, generate a key pair (if not already available)
+  #    using:
+  #       ssh-keygen -t ed25519 -C "your_email@example.com"
+  #    or
+  #       ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+  # 2. Add the public key (found at ~/.ssh/id_ed25519.pub or ~/.ssh/id_rsa.pub)
+  #    to your GitHub account or as a deploy key for the repository.
+  # 3. Replace the sample private key content below with the contents of your
+  #    private key (e.g., from ~/.ssh/id_ed25519 or ~/.ssh/id_rsa).
+  #
+  # This configuration writes the SSH key via a heredoc to preserve line breaks.
+  # ---------------------------------------------------------------------------
+  - mkdir -p /home/azureuser/.ssh
+  - |
+    cat << 'EOF' > /home/azureuser/.ssh/id_rsa
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+    QyNTUxOQAAACAzOOe9yHutSCFnzo+WrqphBUv0AaONqIxt0AS3gj7cQQAAAKD9mM6k/ZjO
+    pAAAAAtzc2gtZWQyNTUxOQAAACAzOOe9yHutSCFnzo+WrqphBUv0AaONqIxt0AS3gj7cQQ
+    AAAEDcNQ2KgXywgblSWuHWMzHRwku4382PlK/LwFE8sNePPTM4573Ie61IIWfOj5auqmEF
+    S/QBo42ojG3QBLeCPtxBAAAAGGthcmVlbW1vYXRhejEzQGdtYWlsLmNvbQECAwQF
+    -----END OPENSSH PRIVATE KEY-----
+    EOF
+  - chmod 600 /home/azureuser/.ssh/id_rsa
+  - ssh-keyscan github.com >> /home/azureuser/.ssh/known_hosts
+  - chown -R azureuser:azureuser /home/azureuser/.ssh
+
+  # ---------------------------------------------------------------------------
   # Install the Microsoft ODBC Driver 18 for SQL Server
+  # ---------------------------------------------------------------------------
   - curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
   - curl https://packages.microsoft.com/config/ubuntu/18.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
   - sudo apt-get update
   - sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
-  
+
+  # ---------------------------------------------------------------------------
+  # Clone the Private Repository and Set Up HMI Server
+  # ---------------------------------------------------------------------------
   - cd /opt
-  - git clone https://github.com/KareemMoataz02/hmi_server
-  - cd /opt/hmi_server
+  - git clone git@github.com:KareemMoataz02/ota-update-azure.git
+  - cd ota-update-azure/hmi_server
   - pip3 install -r requirements.txt
   - |
     cat << 'EOF' | sudo tee /etc/systemd/system/hmi_server.service
@@ -25,7 +62,7 @@ runcmd:
 
     [Service]
     User=azureuser
-    WorkingDirectory=/opt/hmi_server
+    WorkingDirectory=/opt/ota-update-azure/hmi_server
     ExecStart=/usr/bin/python3 socket_server.py
     Restart=always
     Environment="SQL_SERVER=${sql_server_fqdn}"
