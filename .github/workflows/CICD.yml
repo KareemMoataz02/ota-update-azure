@@ -1,0 +1,76 @@
+name: CI/CD OTA Update Azure
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  # This job checks if any changes were made in the website_app folder.
+  filter:
+    runs-on: ubuntu-latest
+    outputs:
+      website_changed: ${{ steps.filter.outputs.website }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Filter website_app changes
+        id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            website:
+              - 'website_app/**'
+  
+  # This job builds and pushes the website_app docker image only if changes are detected.
+  docker-build:
+    needs: filter
+    if: needs.filter.outputs.website == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker registry
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push website_app image
+        run: |
+          docker build -t kareemmoataz13/ota-website-app:latest website_app/
+          docker push kareemmoataz13/ota-website-app:latest
+
+  # This Terraform job always runs, regardless of whether the Docker image was rebuilt.
+  terraform-deploy:
+    runs-on: ubuntu-latest
+    needs: filter
+    if: always()  # Make sure this job runs no matter what
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: terraform
+        run: terraform plan
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
