@@ -3,8 +3,6 @@ name: CI/CD OTA Update Azure
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   filter:
@@ -52,8 +50,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Authenticate with Azure CLI using your Service Principal credentials.
-      # This ensures that Terraform can build an authorizer for the Azure Provider.
       - name: Azure CLI Login
         run: |
           az login --service-principal \
@@ -82,3 +78,7 @@ jobs:
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+      - name: Terraform Refresh
+        working-directory: terraform
+        run: terraform refresh
