@@ -108,7 +108,7 @@ def index():
           border-radius: 4px;
         }}
         input[type="submit"] {{
-          background-color: purple;
+          background-color: green;
           color: white;
           padding: 10px 15px;
           border: none;
