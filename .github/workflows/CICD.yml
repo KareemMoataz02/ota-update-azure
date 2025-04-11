@@ -3,7 +3,8 @@ name: CI/CD OTA Update Azure
 on:
   push:
     branches: [ main ]
-
+  pull_request:
+    branches: [ main ]
 
 jobs:
   filter:
@@ -22,7 +23,7 @@ jobs:
 
   docker-build:
     needs: filter
-    if: needs.filter.outputs.website == 'true'
+    if: needs.filter.outputs.website_changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -57,7 +58,6 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Azure CLI Login
-        # This step logs in for resource provisioning.
         run: |
           az login --service-principal \
             -u ${{ secrets.ARM_CLIENT_ID }} \
