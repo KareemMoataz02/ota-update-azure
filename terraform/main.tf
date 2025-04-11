@@ -6,9 +6,10 @@ terraform {
   }
   # Remote backend configuration for persistent state.
   backend "azurerm" {
-    resource_group_name = "ota-terraform-rg"         # Pre-created resource group for state
-    container_name      = "tfstate"                  # Pre-created container in that storage account
-    key                 = "ota-update-azure.tfstate" # Name for the state file
+    resource_group_name  = "ota-terraform-rg"
+    storage_account_name = "otatfstateacc"
+    container_name       = "tfstate"
+    key                  = "ota-update-azure.tfstate"
   }
 }
 

@@ -73,7 +73,6 @@ variable "hex_storage_account_name" {
   default     = "otahexstorage"
 }
 
-
 variable "website_code_container_name" {
   description = "The container name for storing website code"
   type        = string
@@ -90,9 +89,4 @@ variable "environment" {
   description = "The deployment environment (e.g., dev, staging, prod)."
   type        = string
   default     = "dev"
-}
-
-variable "tfstate_storage_account_name" {
-  description = "The globally unique name for the storage account to store Terraform state."
-  type        = string
 }
