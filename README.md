@@ -7,22 +7,6 @@ This repository provisions two Azure servers using Terraform IaC and provides co
 
 ## Directory Structure
 
-ota-update-azure/ 
-├── terraform/ 
-│ ├── provider.tf 
-│ ├── variables.tf 
-│ ├── main.tf 
-│ └── outputs.tf 
-├── website_app/ 
-│ ├── app.py 
-│ └── requirements.txt 
-├── hmi_server/ 
-│ ├── socket_server.py 
-│ └── requirements.txt 
-└── README.md
-
-
-
 Testing 
 
 Below is a revised complete deliverable that uses Terraform IaC to not only provision the Azure Web App but also automatically deploy your website code (as a ZIP package) using the “WEBSITE_RUN_FROM_PACKAGE” mechanism. In this example, the website ZIP package (containing your Flask app code) is uploaded to an Azure Storage container, a SAS URL is generated for it, and that URL is set as an app setting on the Web App so that the code is automatically deployed.
@@ -32,14 +16,14 @@ The overall file structure is:
 ```
 ota-update-azure/
 ├── terraform/
+    ├──cloud-init-hmi.yaml
 │   ├── provider.tf
 │   ├── variables.tf
 │   ├── main.tf
 │   └── outputs.tf
 ├── website_app/
 │   ├── app.py
-│   ├── requirements.txt
-│   └── website_app.zip    
+│   ├── requirements.txt│  
 ├── hmi_server/
 │   ├── socket_server.py
 │   └── requirements.txt
