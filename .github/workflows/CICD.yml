@@ -75,7 +75,7 @@ jobs:
 
       - name: Terraform unlock
         working-directory: terraform
-        run: terraform force-unlock bc5c552d-ca9e-84b7-dabf-e6c0ffedd77f
+        run: terraform force-unlock bc5c552d-ca9e-84b7-dabf-e6c0ffedd77f -auto-approve
 
       - name: Terraform Plan
         working-directory: terraform
