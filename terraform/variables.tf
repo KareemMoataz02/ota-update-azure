@@ -83,6 +83,7 @@ variable "website_code_container_name" {
 variable "tfstate_storage_account_name" {
   description = "The globally unique name for the storage account to store Terraform state."
   type        = string
+  default     = "otatfstateacc"
 }
 
 variable "environment" {
@@ -91,4 +92,7 @@ variable "environment" {
   default     = "dev"
 }
 
-
+variable "tfstate_storage_account_name" {
+  description = "The globally unique name for the storage account to store Terraform state."
+  type        = string
+}
