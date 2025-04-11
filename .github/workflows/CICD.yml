@@ -21,7 +21,7 @@ jobs:
 
   docker-build:
     needs: filter
-    if: needs.filter.outputs.website == 'true'
+    if: needs.filter.outputs.website_changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -78,7 +78,3 @@ jobs:
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-
-      - name: Terraform Refresh
-        working-directory: terraform
-        run: terraform refresh
