@@ -3,9 +3,10 @@ name: CI/CD OTA Update Azure
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  # This job checks if any changes were made in the website_app folder.
   filter:
     runs-on: ubuntu-latest
     outputs:
@@ -19,8 +20,7 @@ jobs:
           filters: |
             website:
               - 'website_app/**'
-  
-  # This job builds and pushes the website_app docker image only if changes are detected.
+
   docker-build:
     needs: filter
     if: needs.filter.outputs.website == 'true'
@@ -44,14 +44,22 @@ jobs:
           docker build -t kareemmoataz13/ota-website-app:latest website_app/
           docker push kareemmoataz13/ota-website-app:latest
 
-  # This Terraform job always runs, regardless of whether the Docker image was rebuilt.
   terraform-deploy:
     runs-on: ubuntu-latest
     needs: filter
-    if: always()  # Make sure this job runs no matter what
+    if: always()
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      # Authenticate with Azure CLI using your Service Principal credentials.
+      # This ensures that Terraform can build an authorizer for the Azure Provider.
+      - name: Azure CLI Login
+        run: |
+          az login --service-principal \
+            -u ${{ secrets.ARM_CLIENT_ID }} \
+            -p ${{ secrets.ARM_CLIENT_SECRET }} \
+            --tenant ${{ secrets.ARM_TENANT_ID }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
