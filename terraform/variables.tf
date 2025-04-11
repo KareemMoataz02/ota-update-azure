@@ -1,0 +1,82 @@
+#############################
+# Variables
+#############################
+variable "resource_group_name" {
+  description = "The name of the Resource Group"
+  type        = string
+  default     = "ota-update-rg"
+}
+
+variable "location" {
+  description = "Azure region for deployment (allowed: italynorth)"
+  type        = string
+  default     = "italynorth"
+}
+
+variable "website_app_name" {
+  description = "The name of the Web App for the upload website"
+  type        = string
+  default     = "ota-website-app"
+}
+
+variable "sql_server_name" {
+  description = "The name of the SQL Server"
+  type        = string
+  default     = "ota-sqlserver"
+}
+
+variable "sql_database_name" {
+  description = "The name of the SQL Database"
+  type        = string
+  default     = "HexUpdatesDB"
+}
+
+variable "sql_admin_username" {
+  description = "SQL admin user"
+  type        = string
+  default     = "sqladminuser"
+}
+
+variable "sql_admin_password" {
+  description = "SQL admin password (use secure method in production)"
+  type        = string
+  default     = "P@ssword1234!"
+}
+
+variable "hmi_vm_name" {
+  description = "The name of the Virtual Machine hosting the HMI server"
+  type        = string
+  default     = "hmi-socket-vm"
+}
+
+variable "hmi_vm_admin_username" {
+  description = "Admin username for HMI VM"
+  type        = string
+  default     = "azureuser"
+}
+
+variable "hmi_vm_admin_password" {
+  description = "Admin password for HMI VM (use secure method in production)"
+  type        = string
+  default     = "P@ssword1234!"
+}
+
+variable "website_zip_path" {
+  description = "Local path to the website app ZIP package"
+  type        = string
+  default     = "../website_app/website_app.zip"
+}
+
+variable "hex_storage_account_name" {
+  description = "The name of the Storage Account for HEX files"
+  type        = string
+  default     = "otahexstorage"
+}
+
+
+variable "website_code_container_name" {
+  description = "The container name for storing website code"
+  type        = string
+  default     = "website-code"
+}
+

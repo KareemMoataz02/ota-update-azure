@@ -1,0 +1,41 @@
+#cloud-config
+package_update: true
+packages:
+  - python3-pip
+  - python3-dev
+  - unixodbc-dev
+  - git
+
+runcmd:
+  # Install the Microsoft ODBC Driver 18 for SQL Server
+  - curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+  - curl https://packages.microsoft.com/config/ubuntu/18.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+  - sudo apt-get update
+  - sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
+  
+  - cd /opt
+  - git clone https://github.com/KareemMoataz02/hmi_server
+  - cd /opt/hmi_server
+  - pip3 install -r requirements.txt
+  - |
+    cat << 'EOF' | sudo tee /etc/systemd/system/hmi_server.service
+    [Unit]
+    Description=HMI Socket Server
+    After=network.target
+
+    [Service]
+    User=azureuser
+    WorkingDirectory=/opt/hmi_server
+    ExecStart=/usr/bin/python3 socket_server.py
+    Restart=always
+    Environment="SQL_SERVER=${sql_server_fqdn}"
+    Environment="SQL_DATABASE=${sql_database_name}"
+    Environment="SQL_USER=${sql_admin_username}"
+    Environment="SQL_PASSWORD=${sql_admin_password}"
+
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+  - sudo systemctl daemon-reload
+  - sudo systemctl enable hmi_server.service
+  - sudo systemctl start hmi_server.service
