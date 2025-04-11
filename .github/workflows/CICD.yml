@@ -4,6 +4,7 @@ on:
   push:
     branches: [ main ]
 
+
 jobs:
   filter:
     runs-on: ubuntu-latest
@@ -21,7 +22,7 @@ jobs:
 
   docker-build:
     needs: filter
-    if: needs.filter.outputs.website_changed == 'true'
+    if: needs.filter.outputs.website == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -46,11 +47,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: filter
     if: always()
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Azure CLI Login
+        # This step logs in for resource provisioning.
         run: |
           az login --service-principal \
             -u ${{ secrets.ARM_CLIENT_ID }} \
@@ -64,7 +71,7 @@ jobs:
 
       - name: Terraform Init
         working-directory: terraform
-        run: terraform init
+        run: terraform init -migrate-state
 
       - name: Terraform Plan
         working-directory: terraform
@@ -73,8 +80,3 @@ jobs:
       - name: Terraform Apply
         working-directory: terraform
         run: terraform apply -auto-approve
-        env:
-          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
