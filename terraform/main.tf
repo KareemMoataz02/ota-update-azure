@@ -1,3 +1,23 @@
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+  }
+  # Remote backend configuration for persistent state.
+  backend "azurerm" {
+    resource_group_name  = "ota-terraform-rg"         # Pre-created resource group for state
+    storage_account_name = "otatfstateacc"            # Pre-created storage account for state (must be lowercase and globally unique)
+    container_name       = "tfstate"                  # Pre-created container in that storage account
+    key                  = "ota-update-azure.tfstate" # Name for the state file
+  }
+}
+
+# ---------------------------------------------------------------
+# Main Infrastructure Resources for OTA Update Azure Deployment
+# ---------------------------------------------------------------
+
 # -------------------------------
 # Resource Group
 # -------------------------------
@@ -25,7 +45,6 @@ resource "azurerm_mssql_database" "sql_db" {
   sku_name             = "Basic"
   zone_redundant       = false
   storage_account_type = "Local"
-
 }
 
 resource "azurerm_mssql_firewall_rule" "allow_azure_services" {
@@ -137,7 +156,6 @@ resource "azurerm_network_security_group" "hmi_nsg" {
   }
 }
 
-
 resource "azurerm_public_ip" "hmi_public_ip" {
   name                = "hmi-public-ip"
   location            = azurerm_resource_group.rg.location
@@ -162,7 +180,6 @@ resource "azurerm_network_interface_security_group_association" "hmi_nic_associa
   network_interface_id      = azurerm_network_interface.hmi_nic.id
   network_security_group_id = azurerm_network_security_group.hmi_nsg.id
 }
-
 
 # -------------------------------
 # HMI Server (Linux Virtual Machine)

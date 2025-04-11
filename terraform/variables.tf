@@ -80,3 +80,15 @@ variable "website_code_container_name" {
   default     = "website-code"
 }
 
+variable "tfstate_storage_account_name" {
+  description = "The globally unique name for the storage account to store Terraform state."
+  type        = string
+}
+
+variable "environment" {
+  description = "The deployment environment (e.g., dev, staging, prod)."
+  type        = string
+  default     = "dev"
+}
+
+
