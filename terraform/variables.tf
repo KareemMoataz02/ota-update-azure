@@ -8,9 +8,9 @@ variable "resource_group_name" {
 }
 
 variable "location" {
-  description = "Azure region for deployment (allowed: uaenorth)"
+  description = "Azure region for deployment (allowed: us-east)"
   type        = string
-  default     = "uaenorth"
+  default     = "us-east"
 }
 
 variable "website_app_name" {
