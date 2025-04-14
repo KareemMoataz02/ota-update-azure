@@ -110,7 +110,7 @@ resource "azurerm_linux_web_app" "website_app" {
 
   app_settings = {
     # Connection settings for the new Cosmos DB (MongoDB API) service
-    "COSMOSDB_URI"        = azurerm_cosmosdb_account.mongodb.endpoint
+    "COSMOSDB_URI"        = azurerm_cosmosdb_account.mongodb.primary_mongodb_connection_string
     "COSMOSDB_KEY"        = azurerm_cosmosdb_account.mongodb.primary_key
     "COSMOSDB_DATABASE"   = var.mongodb_database_name
     "COSMOSDB_COLLECTION" = var.mongodb_collection_name
