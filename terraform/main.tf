@@ -109,13 +109,13 @@ resource "azurerm_linux_web_app" "website_app" {
   }
 
   app_settings = {
-    # Connection settings for the new Cosmos DB (MongoDB API) service
+    # Use the primary MongoDB connection string
     "COSMOSDB_URI"        = azurerm_cosmosdb_account.mongodb.primary_mongodb_connection_string
     "COSMOSDB_KEY"        = azurerm_cosmosdb_account.mongodb.primary_key
     "COSMOSDB_DATABASE"   = var.mongodb_database_name
     "COSMOSDB_COLLECTION" = var.mongodb_collection_name
 
-    # Retaining existing blob storage settings
+    # Retain your Blob Storage settings
     "HEX_STORAGE_ACCOUNT_NAME"   = azurerm_storage_account.hex_storage.name
     "HEX_STORAGE_CONTAINER_NAME" = azurerm_storage_container.hex_container.name
     "HEX_STORAGE_ACCOUNT_KEY"    = azurerm_storage_account.hex_storage.primary_access_key
@@ -238,8 +238,6 @@ resource "azurerm_linux_virtual_machine" "hmi_vm" {
 
   custom_data = base64encode(templatefile("cloud-init-hmi.yaml", {
     cosmosdb_uri               = azurerm_cosmosdb_account.mongodb.primary_mongodb_connection_string
-    cosmosdb_endpoint          = azurerm_cosmosdb_account.mongodb.endpoint
-    cosmosdb_key               = azurerm_cosmosdb_account.mongodb.primary_key
     cosmosdb_database          = var.mongodb_database_name
     cosmosdb_collection        = var.mongodb_collection_name
     hex_storage_account_name   = var.hex_storage_account_name
