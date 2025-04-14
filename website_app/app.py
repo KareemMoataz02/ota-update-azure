@@ -1,18 +1,25 @@
 from flask import Flask, request
 import os
-import pyodbc
+from pymongo import MongoClient
 from azure.storage.blob import BlobServiceClient
 
 app = Flask(__name__)
 
-# Retrieve SQL connection settings from environment variables
-SQL_SERVER = os.environ.get('SQL_SERVER')
-SQL_DATABASE = os.environ.get('SQL_DATABASE')
-SQL_USER = os.environ.get('SQL_USER')
-SQL_PASSWORD = os.environ.get('SQL_PASSWORD')
-connection_string = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={SQL_SERVER};DATABASE={SQL_DATABASE};UID={SQL_USER};PWD={SQL_PASSWORD}'
+# Retrieve Cosmos DB connection settings from environment variables
+# Expected environment variables include:
+# COSMOSDB_URI - the MongoDB connection string for Cosmos DB
+# COSMOSDB_DATABASE - the name of the database to use
+# COSMOSDB_COLLECTION - the name of the collection for HexUpdates
+COSMOSDB_URI = os.environ.get('COSMOSDB_URI')
+COSMOSDB_DATABASE = os.environ.get('COSMOSDB_DATABASE')
+COSMOSDB_COLLECTION = os.environ.get('COSMOSDB_COLLECTION')
+
+mongo_client = MongoClient(COSMOSDB_URI)
+mongo_db = mongo_client[COSMOSDB_DATABASE]
+hex_updates_collection = mongo_db[COSMOSDB_COLLECTION]
 
 # Retrieve Blob Storage settings from environment variables
+# Expected variables: HEX_STORAGE_ACCOUNT_NAME, HEX_STORAGE_CONTAINER_NAME, HEX_STORAGE_ACCOUNT_KEY
 BLOB_ACCOUNT_NAME = os.environ.get('HEX_STORAGE_ACCOUNT_NAME')
 BLOB_CONTAINER_NAME = os.environ.get('HEX_STORAGE_CONTAINER_NAME')
 BLOB_ACCOUNT_KEY = os.environ.get('HEX_STORAGE_ACCOUNT_KEY')
@@ -28,29 +35,21 @@ container_client = blob_service_client.get_container_client(
 
 
 def get_uploads():
-    """Query the HexUpdates table and return all records."""
-    rows = []
+    """Retrieve all documents from the HexUpdates collection."""
     try:
-        conn = pyodbc.connect(connection_string)
-        cursor = conn.cursor()
-        # Now file_path stores the blob URL
-        cursor.execute(
-            "IF OBJECT_ID('HexUpdates', 'U') IS NOT NULL SELECT id, filename, file_path, car_model FROM HexUpdates"
-        )
-        rows = cursor.fetchall()
-        cursor.close()
-        conn.close()
+        documents = list(hex_updates_collection.find())
+        return documents
     except Exception as e:
         print("Error querying uploads:", e)
-    return rows
+        return []
 
 
 @app.route("/")
 def index():
-    rows = get_uploads()
+    uploads = get_uploads()
 
     table_html = "<h2>Uploaded Files</h2>"
-    if rows:
+    if uploads:
         table_html += """
         <table>
           <thead>
@@ -59,15 +58,23 @@ def index():
               <th>Filename</th>
               <th>File URL</th>
               <th>Car Model</th>
+              <th>Patch Name</th>
+              <th>Patch Version</th>
             </tr>
           </thead>
           <tbody>
         """
-        for row in rows:
+        for doc in uploads:
+            doc_id = str(doc.get("_id"))
+            filename = doc.get("filename", "")
+            file_url = doc.get("file_url", "")
+            car_model = doc.get("car_model", "")
+            patch_name = doc.get("patch_name", "")
+            patch_version = doc.get("patch_version", "")
             table_html += (
-                f"<tr><td>{row[0]}</td><td>{row[1]}</td>"
-                f"<td><a href='{row[2]}' target='_blank'>View File</a></td>"
-                f"<td>{row[3] or ''}</td></tr>"
+                f"<tr><td>{doc_id}</td><td>{filename}</td>"
+                f"<td><a href='{file_url}' target='_blank'>View File</a></td>"
+                f"<td>{car_model}</td><td>{patch_name}</td><td>{patch_version}</td></tr>"
             )
         table_html += """
           </tbody>
@@ -141,6 +148,8 @@ def index():
       <form action="/upload" method="post" enctype="multipart/form-data">
         <input type="file" name="hex_file" /><br/><br/>
         <input type="text" name="car_model" placeholder="Car Model" /><br/><br/>
+        <input type="text" name="patch_name" placeholder="Patch Name (e.g., BMW Link Patch 1)" /><br/><br/>
+        <input type="text" name="patch_version" placeholder="Patch Version (e.g., 1.1)" /><br/><br/>
         <input type="submit" value="Upload" />
       </form>
       {table_html}
@@ -154,6 +163,8 @@ def index():
 def upload():
     file = request.files.get("hex_file")
     car_model = request.form.get("car_model")
+    patch_name = request.form.get("patch_name")
+    patch_version = request.form.get("patch_version")
     if not file:
         return "No file uploaded", 400
 
@@ -166,27 +177,15 @@ def upload():
         # Construct the blob file URL
         file_url = f"https://{BLOB_ACCOUNT_NAME}.blob.core.windows.net/{BLOB_CONTAINER_NAME}/{filename}"
 
-        conn = pyodbc.connect(connection_string)
-        cursor = conn.cursor()
-        # Create the HexUpdates table if it does not exist, including the car_model column
-        cursor.execute("""
-            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='HexUpdates' and xtype='U')
-            CREATE TABLE HexUpdates (
-                id INT IDENTITY(1,1) PRIMARY KEY,
-                filename NVARCHAR(255),
-                file_path NVARCHAR(500),
-                car_model NVARCHAR(255)
-            )
-        """)
-        conn.commit()
-
-        cursor.execute(
-            "INSERT INTO HexUpdates (filename, file_path, car_model) VALUES (?, ?, ?)",
-            (filename, file_url, car_model)
-        )
-        conn.commit()
-        cursor.close()
-        conn.close()
+        # Insert a new document into the MongoDB collection with patch information
+        document = {
+            "filename": filename,
+            "file_url": file_url,
+            "car_model": car_model,
+            "patch_name": patch_name,
+            "patch_version": patch_version
+        }
+        hex_updates_collection.insert_one(document)
     except Exception as e:
         return f"Error saving file: {e}", 500
 

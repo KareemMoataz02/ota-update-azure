@@ -1,4 +1,4 @@
 Flask
-pyodbc
+pymongo
 azure-storage-blob
 gunicorn

@@ -3,26 +3,12 @@ package_update: true
 packages:
   - python3-pip
   - python3-dev
-  - unixodbc-dev
   - git
   - openssh-client
 
 runcmd:
   # ---------------------------------------------------------------------------
   # SSH Setup for Accessing a Private GitHub Repository:
-  #
-  # Steps to acquire your SSH key:
-  # 1. On your local machine, generate a key pair (if not already available)
-  #    using:
-  #       ssh-keygen -t ed25519 -C "your_email@example.com"
-  #    or
-  #       ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
-  # 2. Add the public key (found at ~/.ssh/id_ed25519.pub or ~/.ssh/id_rsa.pub)
-  #    to your GitHub account or as a deploy key for the repository.
-  # 3. Replace the sample private key content below with the contents of your
-  #    private key (e.g., from ~/.ssh/id_ed25519 or ~/.ssh/id_rsa).
-  #
-  # This configuration writes the SSH key via a heredoc to preserve line breaks.
   # ---------------------------------------------------------------------------
   - mkdir -p /home/azureuser/.ssh
   - |
@@ -40,22 +26,11 @@ runcmd:
   - chown -R azureuser:azureuser /home/azureuser/.ssh
 
   # ---------------------------------------------------------------------------
-  # Install the Microsoft ODBC Driver 18 for SQL Server
+  # Clone the Private Repository and Set Up the New HMI Socket Server
   # ---------------------------------------------------------------------------
-  - curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-  - curl https://packages.microsoft.com/config/ubuntu/18.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-  - sudo apt-get update
-  - sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
-
-  # ---------------------------------------------------------------------------
-  # Clone the Private Repository and Set Up HMI Server
-  # ---------------------------------------------------------------------------
-  # Pre-create the target directory and adjust ownership so azureuser can write to it.
   - sudo mkdir -p /opt/ota-update-azure
   - sudo chown azureuser:azureuser /opt/ota-update-azure
-  # Change into the target directory and clone the repository as azureuser.
   - sudo -u azureuser bash -c "cd /opt/ota-update-azure && git clone git@github.com:KareemMoataz02/ota-update-azure.git ."
-  # Change into the hmi_server subdirectory, install Python requirements.
   - cd /opt/ota-update-azure/hmi_server
   - pip3 install -r requirements.txt
   - |
@@ -69,10 +44,12 @@ runcmd:
     WorkingDirectory=/opt/ota-update-azure/hmi_server
     ExecStart=/usr/bin/python3 socket_server.py
     Restart=always
-    Environment="SQL_SERVER=${sql_server_fqdn}"
-    Environment="SQL_DATABASE=${sql_database_name}"
-    Environment="SQL_USER=${sql_admin_username}"
-    Environment="SQL_PASSWORD=${sql_admin_password}"
+    Environment="COSMOSDB_URI=${cosmosdb_uri}"
+    Environment="COSMOSDB_DATABASE=${cosmosdb_database}"
+    Environment="COSMOSDB_COLLECTION=${cosmosdb_collection}"
+    Environment="HEX_STORAGE_ACCOUNT_NAME=${hex_storage_account_name}"
+    Environment="HEX_STORAGE_CONTAINER_NAME=${hex_storage_container_name}"
+    Environment="HEX_STORAGE_ACCOUNT_KEY=${hex_storage_account_key}"
 
     [Install]
     WantedBy=multi-user.target

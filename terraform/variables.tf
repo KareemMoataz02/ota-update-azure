@@ -8,9 +8,9 @@ variable "resource_group_name" {
 }
 
 variable "location" {
-  description = "Azure region for deployment (allowed: polandcentral)"
+  description = "Azure region for deployment (allowed: uaenorth)"
   type        = string
-  default     = "polandcentral"
+  default     = "uaenorth"
 }
 
 variable "website_app_name" {
@@ -19,29 +19,24 @@ variable "website_app_name" {
   default     = "ota-website-app"
 }
 
-variable "sql_server_name" {
-  description = "The name of the SQL Server"
+
+variable "cosmosdb_account_name" {
+  description = "The name of the Azure Cosmos DB account that uses the MongoDB API."
   type        = string
-  default     = "ota-sqlserver"
 }
 
-variable "sql_database_name" {
-  description = "The name of the SQL Database"
+variable "mongodb_database_name" {
+  description = "The MongoDB database name within the Cosmos DB account."
   type        = string
-  default     = "HexUpdatesDB"
+  default     = "otaMongoDb"
 }
 
-variable "sql_admin_username" {
-  description = "SQL admin user"
+variable "mongodb_collection_name" {
+  description = "The name of the MongoDB collection to store your data."
   type        = string
-  default     = "sqladminuser"
+  default     = "otaCollection"
 }
 
-variable "sql_admin_password" {
-  description = "SQL admin password (use secure method in production)"
-  type        = string
-  default     = "P@ssword1234!"
-}
 
 variable "hmi_vm_name" {
   description = "The name of the Virtual Machine hosting the HMI server"
