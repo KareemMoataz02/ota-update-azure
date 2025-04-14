@@ -73,7 +73,12 @@ resource "azurerm_cosmosdb_mongo_collection" "mongodb_collection" {
   throughput          = 400
 
   shard_key = "_id"
+
+  index {
+    keys = ["_id"]
+  }
 }
+
 
 
 # -------------------------------
