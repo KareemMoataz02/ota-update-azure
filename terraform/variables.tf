@@ -23,7 +23,7 @@ variable "website_app_name" {
 variable "cosmosdb_account_name" {
   description = "The name of the Azure Cosmos DB account that uses the MongoDB API."
   type        = string
-  default     = "otaMongoDbAccount"
+  default     = "otamongodbacc"
 }
 
 
