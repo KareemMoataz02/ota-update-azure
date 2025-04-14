@@ -29,12 +29,13 @@ resource "azurerm_resource_group" "rg" {
 # NoSQL Database (Azure Cosmos DB with MongoDB API, optimized for least cost)
 # -------------------------------
 resource "azurerm_cosmosdb_account" "mongodb" {
-  name                = var.cosmosdb_account_name
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  offer_type          = "Standard"
-  kind                = "MongoDB"
-  free_tier_enabled   = true
+  name                 = var.cosmosdb_account_name
+  location             = azurerm_resource_group.rg.location
+  resource_group_name  = azurerm_resource_group.rg.name
+  offer_type           = "Standard"
+  kind                 = "MongoDB"
+  free_tier_enabled    = true
+  mongo_server_version = "4.0"
 
   capabilities {
     name = "EnableMongo"
