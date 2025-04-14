@@ -71,6 +71,10 @@ resource "azurerm_cosmosdb_mongo_collection" "mongodb_collection" {
   account_name        = azurerm_cosmosdb_account.mongodb.name
   database_name       = azurerm_cosmosdb_mongo_database.mongodb_database.name
   throughput          = 400
+
+  shard_key = {
+    "_id" = "Hash"
+  }
 }
 
 # -------------------------------
@@ -127,7 +131,7 @@ resource "azurerm_storage_account" "hex_storage" {
 
 resource "azurerm_storage_container" "hex_container" {
   name                  = "hexfiles"
-  storage_account_name  = azurerm_storage_account.hex_storage.name
+  storage_account_id    = azurerm_storage_account.hex_storage.id
   container_access_type = "blob"
 }
 
