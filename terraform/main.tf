@@ -229,8 +229,7 @@ resource "azurerm_linux_virtual_machine" "hmi_vm" {
   }
 
   custom_data = base64encode(templatefile("cloud-init-hmi.yaml", {
-    cosmosdb_endpoint   = azurerm_cosmosdb_account.mongodb.endpoint
-    cosmosdb_key        = azurerm_cosmosdb_account.mongodb.primary_key
+    cosmosdb_uri        = azurerm_cosmosdb_account.mongodb.primary_mongodb_connection_string
     cosmosdb_database   = var.mongodb_database_name
     cosmosdb_collection = var.mongodb_collection_name
   }))
