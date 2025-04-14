@@ -42,10 +42,6 @@ resource "azurerm_cosmosdb_account" "mongodb" {
   }
 
   capabilities {
-    name = "MongoDBv4.0"
-  }
-
-  capabilities {
     name = "EnableServerless"
   }
 
