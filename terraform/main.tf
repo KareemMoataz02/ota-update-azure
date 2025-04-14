@@ -70,7 +70,6 @@ resource "azurerm_cosmosdb_mongo_collection" "mongodb_collection" {
   resource_group_name = azurerm_resource_group.rg.name
   account_name        = azurerm_cosmosdb_account.mongodb.name
   database_name       = azurerm_cosmosdb_mongo_database.mongodb_database.name
-  throughput          = 400
 
   shard_key = "_id"
 
@@ -78,6 +77,7 @@ resource "azurerm_cosmosdb_mongo_collection" "mongodb_collection" {
     keys = ["_id"]
   }
 }
+
 
 
 
