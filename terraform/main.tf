@@ -236,5 +236,6 @@ resource "azurerm_linux_virtual_machine" "hmi_vm" {
     cosmosdb_collection        = var.mongodb_collection_name
     hex_storage_account_name   = var.hex_storage_account_name
     hex_storage_container_name = azurerm_storage_container.hex_container.name
+    hex_storage_account_key    = azurerm_storage_account.hex_storage.primary_access_key
   }))
 }
