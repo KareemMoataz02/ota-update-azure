@@ -72,10 +72,9 @@ resource "azurerm_cosmosdb_mongo_collection" "mongodb_collection" {
   database_name       = azurerm_cosmosdb_mongo_database.mongodb_database.name
   throughput          = 400
 
-  shard_key = {
-    "_id" = "Hash"
-  }
+  shard_key = "_id"
 }
+
 
 # -------------------------------
 # Website Server (Linux Web App)
