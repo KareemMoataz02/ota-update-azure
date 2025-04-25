@@ -1,11 +1,16 @@
 terraform {
+  # Lock Terraform CLI version for compatibility
+  required_version = ">= 1.5.0"
+
+  # Configure the AzureRM provider with Compose support
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = ">= 3.75.0"
     }
   }
-  # Remote backend configuration for persistent state.
+
+  # Remote backend for state persistence
   backend "azurerm" {
     resource_group_name  = "ota-terraform-rg"
     storage_account_name = "otatfstateacc"
@@ -14,6 +19,9 @@ terraform {
   }
 }
 
+provider "azurerm" {
+  features {}
+}
 
 # ---------------------------------------------------------------
 # Main Infrastructure Resources for OTA Update Azure Deployment
@@ -81,50 +89,66 @@ resource "azurerm_cosmosdb_mongo_collection" "mongodb_collection" {
   }
 }
 
-# -------------------------------
-# Website Server (Linux Web App)
-# -------------------------------
-resource "azurerm_service_plan" "website_plan" {
-  name                = "ota-website-plan"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  os_type             = "Linux"
-  sku_name            = "B1"
-}
-
-# ---------- locals ----------
-locals {
-  compose_b64 = base64encode(file("./ota-compose.yml"))
-}
-
+#############################################
+# 1) Create the Web App (no compose here)   #
+#############################################
 resource "azurerm_linux_web_app" "website_app" {
   name                = var.website_app_name
-  resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   service_plan_id     = azurerm_service_plan.website_plan.id
   https_only          = true
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   site_config {
     always_on = true
-
-    # ← new block in v3.75+
-    container_settings {
-      docker_compose = local.compose_b64
-    }
+    # no linux_fx_version or container_settings here
   }
 
   app_settings = {
-    COSMOSDB_URI        = azurerm_cosmosdb_account.mongodb.primary_mongodb_connection_string
-    COSMOSDB_DATABASE   = var.mongodb_database_name
-    COSMOSDB_COLLECTION = var.mongodb_collection_name
+    "COSMOSDB_URI"        = azurerm_cosmosdb_account.mongodb.primary_mongodb_connection_string
+    "COSMOSDB_DATABASE"   = var.mongodb_database_name
+    "COSMOSDB_COLLECTION" = var.mongodb_collection_name
 
-    HEX_STORAGE_ACCOUNT_NAME   = azurerm_storage_account.hex_storage.name
-    HEX_STORAGE_CONTAINER_NAME = azurerm_storage_container.hex_container.name
-    HEX_STORAGE_ACCOUNT_KEY    = azurerm_storage_account.hex_storage.primary_access_key
+    "HEX_STORAGE_ACCOUNT_NAME"   = azurerm_storage_account.hex_storage.name
+    "HEX_STORAGE_CONTAINER_NAME" = azurerm_storage_container.hex_container.name
+    "HEX_STORAGE_ACCOUNT_KEY"    = azurerm_storage_account.hex_storage.primary_access_key
 
-    # Route public traffic to the frontend container’s port
-    WEBSITES_PORT = "80"
+    "WEBSITES_PORT" = "80"
   }
+
+  tags = {
+    Environment = var.environment
+    Project     = "OTA-Update"
+  }
+}
+
+#############################################
+# 2) Patch in your Docker-Compose string    #
+#############################################
+provider "azapi" {
+  # use same creds as azurerm
+}
+
+resource "azapi_update_resource" "compose_patch" {
+  depends_on = [azurerm_linux_web_app.website_app]
+
+  type        = "Microsoft.Web/sites"
+  parent_id   = azurerm_linux_web_app.website_app.id
+  name        = azurerm_linux_web_app.website_app.name
+  api_version = "2022-03-01"
+
+  body = jsonencode({
+    properties = {
+      siteConfig = {
+        # base64 of your compose file
+        linuxFxVersion = "COMPOSE|${local.compose_b64}"
+      }
+    }
+  })
 }
 
 
