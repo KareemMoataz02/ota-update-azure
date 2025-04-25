@@ -95,17 +95,26 @@ jobs:
         working-directory: terraform
         run: terraform apply -auto-approve
 
-      - name: Terraform Outputs (JSON + jq)
+      - name: Terraform Output
         working-directory: terraform
-        run: |
-          # Install jq if you don’t already have it
-          sudo apt-get update && sudo apt-get install -y jq
+        run: terraform output -json env_cosmosdb_database
 
-          # Dump all outputs as JSON and pull out the three values:
-          terraform output -json \
-            | jq -r '
-              .env_cosmosdb_collection.value,
-              .env_cosmosdb_database.value,
-              .env_cosmosdb_uri.value
-            '
+      - name: Terraform Output1
+        working-directory: terraform
+        run: terraform output -json env_cosmosdb_uri
 
+      - name: Terraform Output2
+        working-directory: terraform
+        run: terraform output -json env_cosmosdb_collection
+      - name: Terraform Output2
+
+        working-directory: terraform
+        run: terraform output -json env_hex_storage_account_key
+      - name: Terraform Output4
+
+        working-directory: terraform
+        run: terraform output -json env_hex_storage_container_name
+
+      - name: Terraform Output5
+        working-directory: terraform
+        run: terraform output -json env_hex_storage_account_name
