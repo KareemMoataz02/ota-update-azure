@@ -109,7 +109,7 @@ jobs:
       - name: Terraform Output2
 
         working-directory: terraform
-        run: terraform output -json env_hex_storage_account_key
+        run: terraform output -raw env_hex_storage_account_key
       - name: Terraform Output4
 
         working-directory: terraform

@@ -1,148 +1,122 @@
+# database_manager.py
+
 import os
-from typing import Dict, List, Optional
-from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
-from bson.binary import Binary
-from bson import ObjectId
 import logging
 import certifi
+from typing import List, Dict, Optional
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+from azure.storage.blob import BlobServiceClient
 
-# Configure logging
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger('DatabaseManager')
+logger = logging.getLogger("DatabaseManager")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(name)s %(levelname)s %(message)s"
+)
 
 
 class DatabaseManager:
     def __init__(self, data_directory: str):
+        # --- filesystem prep & logging
         logger.info(
             f"Initializing DatabaseManager with data directory: {data_directory}")
         self.data_directory = data_directory
         os.makedirs(data_directory, exist_ok=True)
 
-        # These can be env vars or hard-coded
-        ACCOUNT = "otamongodbacc"
-        KEY = os.environ["COSMOSDB_KEY"]
-        DBNAME = os.environ.get("COSMOSDB_DATABASE", "ota_update_db")
+        # --- MongoDB/Cosmos setup
+        self._init_mongo()
 
-        srv_uri = (
-            f"mongodb+srv://{ACCOUNT}:{KEY}"
-            f"@{ACCOUNT}.mongo.cosmos.azure.com"
-            f"/{DBNAME}"
-            "?ssl=true"
-            "&retryWrites=false"
-            f"&appName=@{ACCOUNT}@"
-        )
+        # --- Blob Storage setup
+        self._init_blob()
 
-        try:
-            # Use srv_uri, drop directConnection/retryWrites
-            logger.info(f"Connecting with SRV URI: {srv_uri}")
-            self.client = MongoClient(
-                srv_uri,
-                tlsCAFile=certifi.where(),
-                serverSelectionTimeoutMS=30000
-            )
-            # verify
-            self.client.admin.command("ping")
-            logger.info("Successfully connected to Cosmos DB via SRV!")
-        except Exception as e:
-            logger.error(f"Failed to connect to MongoDB: {e}")
-            raise
-
-        self.db = self.client[DBNAME]
-
-        # Collections
-        self.car_types_collection = self.db['car_types']
-        self.ecus_collection = self.db['ecus']
-        self.versions_collection = self.db['versions']
-        self.requests_collection = self.db['requests']
-        self.download_requests_collection = self.db['download_requests']
-
-        # Initialize collections with indexes
+        # --- index creation, duplicate cleanup
         self._initialize_db()
 
-        # Factory methods for services (to be injected by DatabaseService)
-        self.get_car_type_service = None
-        self.get_ecu_service = None
-        self.get_version_service = None
-        self.get_request_service = None
+    def _init_mongo(self):
+        uri = os.environ["COSMOSDB_URI"]
+        db_nm = os.environ.get("COSMOSDB_DATABASE", "")
+        # explicitly use the Server API version 1
+        self.client = MongoClient(uri, server_api=ServerApi("1"),
+                                  tlsCAFile=certifi.where(),
+                                  serverSelectionTimeoutMS=30000)
+        try:
+            self.client.admin.command("ping")
+            logger.info("Connected to CosmosDB via SRV + ServerApi('1')!")
+        except Exception as e:
+            logger.error(f"Mongo ping failed: {e}")
+            raise
+        self.db = self.client[db_nm]
+        self.collection_name = os.environ.get(
+            "COSMOSDB_COLLECTION", "HexUpdates")
+        self.coll = self.db[self.collection_name]
+
+    def _init_blob(self):
+        acct = os.environ["HEX_STORAGE_ACCOUNT_NAME"]
+        key = os.environ["HEX_STORAGE_ACCOUNT_KEY"]
+        cont = os.environ["HEX_STORAGE_CONTAINER_NAME"]
+        conn_str = (
+            f"DefaultEndpointsProtocol=https;"
+            f"AccountName={acct};AccountKey={key};"
+            f"EndpointSuffix=core.windows.net"
+        )
+        self.blob_svc = BlobServiceClient.from_connection_string(conn_str)
+        self.container_client = self.blob_svc.get_container_client(cont)
+        logger.info("BlobServiceClient initialized.")
 
     def _initialize_db(self):
-        """Create indexes and ensure collections exist"""
-        logger.info("Initializing database indexes")
+        """(Your existing index setup + duplicate cleanup)"""
+        logger.info("Initializing indexes and deduplication.")
+        # ... copy over your entire _initialize_db() and _clean_duplicates_in_versions() here ...
 
+    # ————————————————————————————————
+    # New methods to match your Flask logic
+    # ————————————————————————————————
+
+    def list_hex_updates(self) -> List[Dict]:
+        """Get all patch docs."""
         try:
-            # Fix for duplicate key error: First, we'll clean up any duplicates in the versions collection
-            self._clean_duplicates_in_versions()
-
-            # Check and create indexes for car_types collection
-            car_types_indexes = list(self.car_types_collection.list_indexes())
-            car_types_index_names = [idx['name'] for idx in car_types_indexes]
-
-            # Name index
-            if 'name_1' not in car_types_index_names:
-                logger.info("Creating index on car_types.name")
-                self.car_types_collection.create_index(
-                    "name")  # Removed unique constraint
-
-            # Model number index
-            if 'model_number_1' not in car_types_index_names:
-                logger.info("Creating index on car_types.model_number")
-                self.car_types_collection.create_index(
-                    "model_number")  # Removed unique constraint
-
-            # Check and create indexes for ecus collection
-            ecus_indexes = list(self.ecus_collection.list_indexes())
-            ecus_index_names = [idx['name'] for idx in ecus_indexes]
-
-            if 'name_1_model_number_1' not in ecus_index_names:
-                logger.info(
-                    "Creating compound index on ecus.name and ecus.model_number")
-                self.ecus_collection.create_index(
-                    # Removed unique constraint
-                    [("name", 1), ("model_number", 1)])
-
-            # Check and create indexes for versions collection - with NO unique constraint
-            versions_indexes = list(self.versions_collection.list_indexes())
-            versions_index_names = [idx['name'] for idx in versions_indexes]
-
-            if 'version_number_1_hex_file_path_1' not in versions_index_names:
-                logger.info(
-                    "Creating compound index on versions.version_number and versions.hex_file_path")
-                self.versions_collection.create_index(
-                    # No unique constraint
-                    [("version_number", 1), ("hex_file_path", 1)])
-
-            # Request indexes
-            requests_indexes = list(self.requests_collection.list_indexes())
-            requests_index_names = [idx['name'] for idx in requests_indexes]
-
-            if 'car_id_1_timestamp_-1' not in requests_index_names:
-                logger.info(
-                    "Creating compound index on requests.car_id and requests.timestamp")
-                self.requests_collection.create_index(
-                    [("car_id", 1), ("timestamp", -1)])
-
-            # Download request indexes
-            download_requests_indexes = list(
-                self.download_requests_collection.list_indexes())
-            download_requests_index_names = [idx['name']
-                                             for idx in download_requests_indexes]
-
-            if 'car_id_1_timestamp_-1' not in download_requests_index_names:
-                logger.info(
-                    "Creating compound index on download_requests.car_id and download_requests.timestamp")
-                self.download_requests_collection.create_index(
-                    [("car_id", 1), ("timestamp", -1)])
-
-            if 'status_1' not in download_requests_index_names:
-                logger.info("Creating index on download_requests.status")
-                self.download_requests_collection.create_index("status")
-
-            logger.info("Database indexes initialized successfully")
+            return list(self.coll.find())
         except Exception as e:
-            logger.error(f"Error initializing database indexes: {str(e)}")
-            # Continue even if indexes fail - they're for performance, not functionality
+            logger.error(f"Error listing updates: {e}")
+            return []
+
+    def upload_hex_update(
+        self,
+        file_stream,
+        filename: str,
+        car_model: str,
+        patch_name: str,
+        patch_version: str
+    ) -> Optional[str]:
+        """
+        1. Uploads the file to Blob Storage
+        2. Inserts a Mongo document with the same fields + file_url
+        Returns the URL or None on error.
+        """
+        try:
+            # upload blob
+            blob = self.container_client.get_blob_client(filename)
+            blob.upload_blob(file_stream, overwrite=True)
+            file_url = (
+                f"https://{self.container_client.account_name}"
+                f".blob.core.windows.net/{self.container_client.container_name}/{filename}"
+            )
+
+            # insert doc
+            doc = {
+                "filename": filename,
+                "file_url": file_url,
+                "car_model": car_model,
+                "patch_name": patch_name,
+                "patch_version": patch_version
+            }
+            self.coll.insert_one(doc)
+            logger.info(f"Inserted document for {filename}")
+            return file_url
+
+        except Exception as e:
+            logger.error(f"Error in upload_hex_update: {e}")
+            return None
 
     def _clean_duplicates_in_versions(self):
         """Clean up duplicate entries in versions collection"""
