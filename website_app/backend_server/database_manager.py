@@ -20,7 +20,18 @@ class DatabaseManager:
         self.data_directory = data_directory
         os.makedirs(data_directory, exist_ok=True)
 
-        uri = "mongodb://otamongodbacc:UJVEPYEholIfza6ZYQHT1IBFlQEXoFShw4ocINpMfILfMNz3IWBod2udwaToZl58LF1fNFRAMekQACDbJwziXA==@otamongodbacc.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@otamongodbacc@"
+        key = os.environ["COSMOSDB_KEY"]
+        uri = (
+            f"mongodb://otamongodbacc:{key}"
+            "@otamongodbacc.mongo.cosmos.azure.com:10255/"
+            "?ssl=true"
+            "&replicaSet=globaldb"
+            "&retryWrites=false"
+            "&authSource=admin"
+            "&authMechanism=SCRAM-SHA-1"
+            "&maxIdleTimeMS=120000"
+        )
+
         try:
             # Connect directly and disable retryable writes so pymongo won’t send 'hello'
             self.client = MongoClient(
@@ -28,8 +39,10 @@ class DatabaseManager:
                 tls=True,
                 tlsCAFile=certifi.where(),
                 serverSelectionTimeoutMS=30000,
+                directConnection=True,
                 retryWrites=False,
-                directConnection=True
+                # ← enforce v1 API (legacy “ismaster” handshake)
+                server_api=ServerApi('1')
             )
             logger.info("Successfully connected to Cosmos DB (MongoDB API)")
         except Exception as e:
