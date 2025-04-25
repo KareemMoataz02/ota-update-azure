@@ -16,6 +16,9 @@ COPY website_app/frontend/package*.json ./
 # Install exact deps via lockfile
 RUN npm ci
 
+# remove any host modules that got copied over
+RUN rm -rf node_modules
+
 # Copy rest of the source and build
 COPY website_app/frontend/ .
 RUN npm run build         # outputs to /src/dist (or /src/build for CRA)
