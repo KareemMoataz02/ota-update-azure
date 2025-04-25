@@ -27,9 +27,7 @@ class DatabaseManager:
                 uri,
                 tls=True,
                 tlsCAFile=certifi.where(),
-                retryWrites=False,
-                directConnection=True,
-                serverSelectionTimeoutMS=30000,
+                serverSelectionTimeoutMS=30000
             )
             logger.info("Successfully connected to Cosmos DB (MongoDB API)")
         except Exception as e:
