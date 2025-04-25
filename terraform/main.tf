@@ -142,9 +142,6 @@ resource "azurerm_linux_web_app" "website_app" {
 #############################################
 # 2) Patch in your Docker-Compose string    #
 #############################################
-provider "azapi" {
-  # use same creds as azurerm
-}
 
 resource "azapi_update_resource" "compose_patch" {
   depends_on = [azurerm_linux_web_app.website_app]
