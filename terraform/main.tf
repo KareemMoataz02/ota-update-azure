@@ -2,15 +2,21 @@ terraform {
   # Lock Terraform CLI version for compatibility
   required_version = ">= 1.5.0"
 
-  # Configure the AzureRM provider with Compose support
   required_providers {
+    # AzureRM ≥3.75.0 gives you native Compose support
     azurerm = {
-      source  = "hashicorp/azurerm"
-      version = ">= 3.75.0"
+      source          = "hashicorp/azurerm"
+      version         = ">= 3.75.0"
+      subscription_id = "ec34342c-37de-48d7-a62d-6d8cbf370531"
+
+    }
+    # Only needed if you’re post-patching via azapi
+    azapi = {
+      source  = "azure/azapi"
+      version = "~> 1.4"
     }
   }
 
-  # Remote backend for state persistence
   backend "azurerm" {
     resource_group_name  = "ota-terraform-rg"
     storage_account_name = "otatfstateacc"
@@ -19,9 +25,12 @@ terraform {
   }
 }
 
-provider "azurerm" {
-  features {}
+# —————————————————————————————
+# Optional azapi provider (only if you’re patching)
+# —————————————————————————————
+provider "azapi" {
 }
+
 
 # ---------------------------------------------------------------
 # Main Infrastructure Resources for OTA Update Azure Deployment
@@ -89,6 +98,10 @@ resource "azurerm_cosmosdb_mongo_collection" "mongodb_collection" {
   }
 }
 
+locals {
+  compose_b64 = base64encode(file("${path.module}/compose/ota-compose.yml"))
+}
+
 #############################################
 # 1) Create the Web App (no compose here)   #
 #############################################
@@ -136,10 +149,9 @@ provider "azapi" {
 resource "azapi_update_resource" "compose_patch" {
   depends_on = [azurerm_linux_web_app.website_app]
 
-  type        = "Microsoft.Web/sites"
-  parent_id   = azurerm_linux_web_app.website_app.id
-  name        = azurerm_linux_web_app.website_app.name
-  api_version = "2022-03-01"
+  type      = "Microsoft.Web/sites"
+  parent_id = azurerm_linux_web_app.website_app.id
+  name      = azurerm_linux_web_app.website_app.name
 
   body = jsonencode({
     properties = {
