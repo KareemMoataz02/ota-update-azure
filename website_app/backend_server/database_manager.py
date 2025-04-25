@@ -27,9 +27,8 @@ class DatabaseManager:
                 uri,
                 tls=True,
                 tlsCAFile=certifi.where(),
+                server_api=ServerApi('1'),
                 serverSelectionTimeoutMS=30000,
-                retryWrites=False,
-                directConnection=True
             )
             # now ping to verify
             self.client.admin.command('ping')
