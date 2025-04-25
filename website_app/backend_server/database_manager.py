@@ -38,7 +38,6 @@ class DatabaseManager:
                 tls=True,
                 tlsCAFile=certifi.where(),
                 serverSelectionTimeoutMS=30000,
-                server_api=ServerApi('1')
             )
         except Exception as e:
             logger.error(f"Failed to connect to MongoDB: {str(e)}")
