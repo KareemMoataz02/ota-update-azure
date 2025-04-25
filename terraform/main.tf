@@ -152,7 +152,7 @@ resource "azurerm_linux_web_app" "website_app" {
 resource "azapi_update_resource" "compose_patch" {
   depends_on = [azurerm_linux_web_app.website_app]
 
-  type      = "Microsoft.Web/sites"
+  type      = "Microsoft.Web/sites@2022-03-01"
   parent_id = azurerm_linux_web_app.website_app.id
   name      = azurerm_linux_web_app.website_app.name
 
