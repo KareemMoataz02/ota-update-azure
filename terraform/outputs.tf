@@ -33,7 +33,4 @@ output "env_hex_storage_container_name" {
   value       = "HEX_STORAGE_CONTAINER_NAME=${azurerm_storage_container.hex_container.name}"
 }
 
-output "env_hex_storage_account_key" {
-  description = "Environment variable assignment for HEX storage account key"
-  value       = "HEX_STORAGE_ACCOUNT_KEY=${azurerm_storage_account.hex_storage.primary_access_key}"
-}
+
