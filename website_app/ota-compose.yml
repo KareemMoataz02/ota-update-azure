@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./website_app/backend_server
+      dockerfile: Dockerfile
+    image: kareemmoataz13/ota-backend:latest
+    environment:
+      COSMOSDB_URI:        ${COSMOSDB_URI}
+      COSMOSDB_DATABASE:   ${COSMOSDB_DATABASE}
+      COSMOSDB_COLLECTION: ${COSMOSDB_COLLECTION}
+      HEX_STORAGE_ACCOUNT_NAME:   ${HEX_STORAGE_ACCOUNT_NAME}
+      HEX_STORAGE_CONTAINER_NAME: ${HEX_STORAGE_CONTAINER_NAME}
+      HEX_STORAGE_ACCOUNT_KEY:    ${HEX_STORAGE_ACCOUNT_KEY}
+    ports:
+      - "5000:80"
+
+  frontend:
+    build:
+      context: ./website_app/frontend_server
+      dockerfile: Dockerfile
+    image: kareemmoataz13/ota-frontend:latest
+    environment:
+      EXPO_PUBLIC_API_URL: http://backend:80/api
+    ports:
+      - "3000:80"

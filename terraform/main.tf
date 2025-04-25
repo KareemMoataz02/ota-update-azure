@@ -13,6 +13,7 @@ terraform {
   }
 }
 
+
 # ---------------------------------------------------------------
 # Main Infrastructure Resources for OTA Update Azure Deployment
 # ---------------------------------------------------------------
@@ -93,6 +94,12 @@ resource "azurerm_service_plan" "website_plan" {
   sku_name            = "B1"
 }
 
+# ---------- locals ----------
+locals {
+  compose_b64 = base64encode(file("./website_app/ota-compose.yml"))
+}
+
+# ---------- web-app ----------
 resource "azurerm_linux_web_app" "website_app" {
   name                = var.website_app_name
   location            = azurerm_resource_group.rg.location
@@ -101,27 +108,25 @@ resource "azurerm_linux_web_app" "website_app" {
   https_only          = true
 
   site_config {
-    always_on = false
-
-    application_stack {
-      docker_image_name   = "kareemmoataz13/ota-website-app:latest"
-      docker_registry_url = "https://index.docker.io"
-    }
+    always_on        = true
+    linux_fx_version = "COMPOSE|${local.compose_b64}"
   }
 
   app_settings = {
-    # Use the primary MongoDB connection string
-    "COSMOSDB_URI"        = azurerm_cosmosdb_account.mongodb.primary_mongodb_connection_string
-    "COSMOSDB_KEY"        = azurerm_cosmosdb_account.mongodb.primary_key
-    "COSMOSDB_DATABASE"   = var.mongodb_database_name
-    "COSMOSDB_COLLECTION" = var.mongodb_collection_name
+    # values referenced in the compose file
+    COSMOSDB_URI        = azurerm_cosmosdb_account.mongodb.primary_mongodb_connection_string
+    COSMOSDB_DATABASE   = var.mongodb_database_name
+    COSMOSDB_COLLECTION = var.mongodb_collection_name
 
-    # Retain your Blob Storage settings
-    "HEX_STORAGE_ACCOUNT_NAME"   = azurerm_storage_account.hex_storage.name
-    "HEX_STORAGE_CONTAINER_NAME" = azurerm_storage_container.hex_container.name
-    "HEX_STORAGE_ACCOUNT_KEY"    = azurerm_storage_account.hex_storage.primary_access_key
+    HEX_STORAGE_ACCOUNT_NAME   = azurerm_storage_account.hex_storage.name
+    HEX_STORAGE_CONTAINER_NAME = azurerm_storage_container.hex_container.name
+    HEX_STORAGE_ACCOUNT_KEY    = azurerm_storage_account.hex_storage.primary_access_key
+
+    # tell App Service which exposed port to route to; it’s the one on frontend
+    WEBSITES_PORT = "80"
   }
 }
+
 
 # -------------------------------
 # HEX Files Storage (Dedicated Blob Storage)
