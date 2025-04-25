@@ -11,7 +11,7 @@ RUN apt-get update \
 WORKDIR /src
 
 # Copy only package manifests for cacheable dependency install
-COPY package*.json ./
+COPY website_app/frontend/package*.json ./
 
 # Install exact deps via lockfile
 RUN npm ci
