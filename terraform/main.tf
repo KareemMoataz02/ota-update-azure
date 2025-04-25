@@ -1,20 +1,15 @@
 terraform {
-  # Lock Terraform CLI version for compatibility
   required_version = ">= 1.5.0"
-
   required_providers {
-    # AzureRM ≥3.75.0 gives you native Compose support
     azurerm = {
       source  = "hashicorp/azurerm"
       version = ">= 3.75.0"
     }
-    # Only needed if you’re post-patching via azapi
     azapi = {
       source  = "azure/azapi"
       version = "~> 1.4"
     }
   }
-
   backend "azurerm" {
     resource_group_name  = "ota-terraform-rg"
     storage_account_name = "otatfstateacc"
@@ -25,13 +20,10 @@ terraform {
 
 provider "azurerm" {
   subscription_id = "ec34342c-37de-48d7-a62d-6d8cbf370531"
+  features        = {}
 }
 
-provider "azapi" {
-  # (no extra config unless you need to override creds)
-}
-
-
+provider "azapi" {}
 
 # ---------------------------------------------------------------
 # Main Infrastructure Resources for OTA Update Azure Deployment
@@ -100,7 +92,7 @@ resource "azurerm_cosmosdb_mongo_collection" "mongodb_collection" {
 }
 
 locals {
-  compose_b64 = base64encode(file("${path.module}/compose/ota-compose.yml"))
+  compose_b64 = base64encode(file("${path.module}/ota-compose.yml"))
 }
 
 #############################################
