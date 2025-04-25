@@ -41,7 +41,7 @@ jobs:
       - name: Build & push BACKEND image
         uses: docker/build-push-action@v5
         with:
-          context: website_app/backend_server
+          context: ./website_app/backend_server
           file: Dockerfile
           push: true
           tags: |
@@ -51,7 +51,7 @@ jobs:
       - name: Build & push FRONTEND image
         uses: docker/build-push-action@v5
         with:
-          context: website_app/frontend_server
+          context: ./website_app/frontend_server
           file: Dockerfile
           push: true
           tags: |

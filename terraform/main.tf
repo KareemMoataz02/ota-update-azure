@@ -5,10 +5,8 @@ terraform {
   required_providers {
     # AzureRM ≥3.75.0 gives you native Compose support
     azurerm = {
-      source          = "hashicorp/azurerm"
-      version         = ">= 3.75.0"
-      subscription_id = "ec34342c-37de-48d7-a62d-6d8cbf370531"
-
+      source  = "hashicorp/azurerm"
+      version = ">= 3.75.0"
     }
     # Only needed if you’re post-patching via azapi
     azapi = {
@@ -25,11 +23,14 @@ terraform {
   }
 }
 
-# —————————————————————————————
-# Optional azapi provider (only if you’re patching)
-# —————————————————————————————
-provider "azapi" {
+provider "azurerm" {
+  subscription_id = "ec34342c-37de-48d7-a62d-6d8cbf370531"
 }
+
+provider "azapi" {
+  # (no extra config unless you need to override creds)
+}
+
 
 
 # ---------------------------------------------------------------
