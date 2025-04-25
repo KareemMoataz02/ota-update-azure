@@ -80,9 +80,6 @@ resource "azurerm_cosmosdb_mongo_collection" "mongodb_collection" {
   }
 }
 
-
-
-
 # -------------------------------
 # Website Server (Linux Web App)
 # -------------------------------
@@ -96,7 +93,7 @@ resource "azurerm_service_plan" "website_plan" {
 
 # ---------- locals ----------
 locals {
-  compose_b64 = base64encode(file("./website_app/ota-compose.yml"))
+  compose_b64 = base64encode(file("./ota-compose.yml"))
 }
 
 # ---------- web-app ----------
