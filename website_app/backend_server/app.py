@@ -64,7 +64,8 @@ def create_app(test_config=None):
                 "car_types": "/api/car-types",
                 "ecus": "/api/ecus",
                 "versions": "/api/versions",
-                "requests": "/api/requests"
+                "requests": "/api/requests",
+                "uri": os.environ.get('COSMOSDB_URI')
             }
         }
 
