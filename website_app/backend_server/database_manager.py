@@ -32,13 +32,13 @@ class DatabaseManager:
 
         try:
             # Ping the database to check connection
-            self.client.admin.command('ping')
             logger.info("Successfully connected to MongoDB")
             self.client = MongoClient(
                 uri,
                 tls=True,
                 tlsCAFile=certifi.where(),
                 serverSelectionTimeoutMS=30000,
+                server_api=ServerApi('1')
             )
         except Exception as e:
             logger.error(f"Failed to connect to MongoDB: {str(e)}")
