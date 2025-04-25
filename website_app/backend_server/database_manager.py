@@ -28,6 +28,8 @@ class DatabaseManager:
                 tls=True,
                 tlsCAFile=certifi.where(),
                 server_api=ServerApi('1'),
+                retryWrites=False,
+                directConnection=True,
                 serverSelectionTimeoutMS=30000,
             )
             # now ping to verify
