@@ -4,7 +4,7 @@ services:
   backend:
     build:
       context: ./website_app/backend_server
-      dockerfile: backendImage
+      dockerfile: DockerFile
     image: kareemmoataz13/ota-backend:latest
     environment:
       COSMOSDB_URI:        ${COSMOSDB_URI}
@@ -19,7 +19,7 @@ services:
   frontend:
     build:
       context: ./website_app/frontend_server
-      dockerfile: frontendImage
+      dockerfile: DockerFile
     image: kareemmoataz13/ota-frontend:latest
     environment:
       EXPO_PUBLIC_API_URL: http://backend:80/api
