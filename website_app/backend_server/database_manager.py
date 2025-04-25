@@ -20,7 +20,7 @@ class DatabaseManager:
         self.data_directory = data_directory
         os.makedirs(data_directory, exist_ok=True)
 
-        uri = os.environ.get('COSMOSDB_URI')
+        uri = "mongodb://otamongodbacc:UJVEPYEholIfza6ZYQHT1IBFlQEXoFShw4ocINpMfILfMNz3IWBod2udwaToZl58LF1fNFRAMekQACDbJwziXA==@otamongodbacc.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@otamongodbacc@"
         try:
             # Connect directly and disable retryable writes so pymongo won’t send 'hello'
             self.client = MongoClient(
