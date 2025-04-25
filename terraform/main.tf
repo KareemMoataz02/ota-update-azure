@@ -97,21 +97,23 @@ locals {
   compose_b64 = base64encode(file("./ota-compose.yml"))
 }
 
-# ---------- web-app ----------
 resource "azurerm_linux_web_app" "website_app" {
   name                = var.website_app_name
-  location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
   service_plan_id     = azurerm_service_plan.website_plan.id
   https_only          = true
 
   site_config {
-    always_on        = true
-    linux_fx_version = "COMPOSE|${local.compose_b64}"
+    always_on = true
+
+    # ← new block in v3.75+
+    container_settings {
+      docker_compose = local.compose_b64
+    }
   }
 
   app_settings = {
-    # values referenced in the compose file
     COSMOSDB_URI        = azurerm_cosmosdb_account.mongodb.primary_mongodb_connection_string
     COSMOSDB_DATABASE   = var.mongodb_database_name
     COSMOSDB_COLLECTION = var.mongodb_collection_name
@@ -120,7 +122,7 @@ resource "azurerm_linux_web_app" "website_app" {
     HEX_STORAGE_CONTAINER_NAME = azurerm_storage_container.hex_container.name
     HEX_STORAGE_ACCOUNT_KEY    = azurerm_storage_account.hex_storage.primary_access_key
 
-    # tell App Service which exposed port to route to; it’s the one on frontend
+    # Route public traffic to the frontend container’s port
     WEBSITES_PORT = "80"
   }
 }
