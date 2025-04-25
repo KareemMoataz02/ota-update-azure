@@ -1,20 +1,35 @@
-# ---------- build the React bundle ----------
+# --------------------------------------------
+# Stage 1: build React app with npm ci
+# --------------------------------------------
 FROM node:20-slim AS build
+
+# Install Python & C toolchain so native modules compile
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+  python3 \
+  build-essential \
+  && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /src
 
-# Copy only manifest, install reproducibly
+# Copy only manifest for reproducible cache
 COPY package*.json ./
+
+# Run npm ci (lockfile required)
 RUN npm ci
 
-# Add your source & build
-
+# Copy the rest of your source & build
 COPY website_app/frontend/ .
 RUN npm run build         # outputs to /src/dist
 
-# ---------- lightweight Nginx image ----------
+# --------------------------------------------
+# Stage 2: serve with nginx
+# --------------------------------------------
 FROM nginx:alpine
+
 COPY --from=build /src/dist /usr/share/nginx/html
 
+# SPA fallback
 RUN printf 'server { \
   listen 80; \
   location / { try_files $uri /index.html; } \
@@ -22,6 +37,7 @@ RUN printf 'server { \
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
+
 
 
 
