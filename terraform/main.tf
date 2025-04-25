@@ -152,19 +152,19 @@ resource "azurerm_linux_web_app" "website_app" {
 resource "azapi_update_resource" "compose_patch" {
   depends_on = [azurerm_linux_web_app.website_app]
 
-  type      = "Microsoft.Web/sites@2022-03-01"
+  # PATCH the “config/web” child resource, not the site itself
+  type      = "Microsoft.Web/sites/config@2022-03-01"
   parent_id = azurerm_linux_web_app.website_app.id
   name      = azurerm_linux_web_app.website_app.name
 
   body = jsonencode({
     properties = {
-      siteConfig = {
-        # base64 of your compose file
-        linuxFxVersion = "COMPOSE|${local.compose_b64}"
-      }
+      # base64-encoded compose file
+      linuxFxVersion = "COMPOSE|${local.compose_b64}"
     }
   })
 }
+
 
 
 # -------------------------------
