@@ -36,6 +36,7 @@ class DatabaseManager:
 
         try:
             # Use srv_uri, drop directConnection/retryWrites
+            logger.info(f"Connecting with SRV URI: {srv_uri}")
             self.client = MongoClient(
                 srv_uri,
                 tlsCAFile=certifi.where(),
