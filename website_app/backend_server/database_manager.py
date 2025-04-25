@@ -27,13 +27,10 @@ class DatabaseManager:
                 uri,
                 tls=True,
                 tlsCAFile=certifi.where(),
-                server_api=ServerApi('1'),
                 retryWrites=False,
                 directConnection=True,
                 serverSelectionTimeoutMS=30000,
             )
-            # now ping to verify
-            self.client.admin.command('ping')
             logger.info("Successfully connected to Cosmos DB (MongoDB API)")
         except Exception as e:
             logger.error(f"Failed to connect to MongoDB: {e}")
