@@ -93,6 +93,17 @@ resource "azurerm_cosmosdb_mongo_collection" "mongodb_collection" {
   }
 }
 
+# -------------------------------
+# Website Server (Linux Web App)
+# -------------------------------
+resource "azurerm_service_plan" "website_plan" {
+  name                = "ota-website-plan"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  os_type             = "Linux"
+  sku_name            = "B1"
+}
+
 locals {
   compose_b64 = base64encode(file("${path.module}/ota-compose.yml"))
 }
