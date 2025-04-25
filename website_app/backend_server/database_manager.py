@@ -15,32 +15,27 @@ logger = logging.getLogger('DatabaseManager')
 
 class DatabaseManager:
     def __init__(self, data_directory: str):
-        """
-        Initialize the DatabaseManager with MongoDB connection
-        The data_directory parameter is kept for compatibility and hex files storage
-        """
         logger.info(
             f"Initializing DatabaseManager with data directory: {data_directory}")
         self.data_directory = data_directory
-
-        # Ensure data directory exists
         os.makedirs(data_directory, exist_ok=True)
 
-        # MongoDB connection
-        # Use environment variables for production or a more secure approach
         uri = os.environ.get('COSMOSDB_URI')
-
         try:
-            # Ping the database to check connection
-            logger.info("Successfully connected to MongoDB")
+            # Connect directly and disable retryable writes so pymongo won’t send 'hello'
             self.client = MongoClient(
                 uri,
                 tls=True,
                 tlsCAFile=certifi.where(),
                 serverSelectionTimeoutMS=30000,
+                retryWrites=False,
+                directConnection=True
             )
+            # now ping to verify
+            self.client.admin.command('ping')
+            logger.info("Successfully connected to Cosmos DB (MongoDB API)")
         except Exception as e:
-            logger.error(f"Failed to connect to MongoDB: {str(e)}")
+            logger.error(f"Failed to connect to MongoDB: {e}")
             raise
 
         self.db = self.client[os.getenv("COSMOSDB_DATABASE")]
