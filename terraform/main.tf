@@ -131,6 +131,8 @@ resource "azurerm_linux_web_app" "website_app" {
     "COSMOSDB_URI"        = azurerm_cosmosdb_account.mongodb.primary_mongodb_connection_string
     "COSMOSDB_DATABASE"   = var.mongodb_database_name
     "COSMOSDB_COLLECTION" = var.mongodb_collection_name
+    "COSMOSDB_KEY"        = azurerm_cosmosdb_account.mongodb.primary_key
+
 
     "HEX_STORAGE_ACCOUNT_NAME"   = azurerm_storage_account.hex_storage.name
     "HEX_STORAGE_CONTAINER_NAME" = azurerm_storage_container.hex_container.name
@@ -281,9 +283,11 @@ resource "azurerm_linux_virtual_machine" "hmi_vm" {
   }
 
   custom_data = base64encode(templatefile("cloud-init-hmi.yaml", {
-    cosmosdb_uri               = azurerm_cosmosdb_account.mongodb.primary_mongodb_connection_string
-    cosmosdb_database          = var.mongodb_database_name
-    cosmosdb_collection        = var.mongodb_collection_name
+    cosmosdb_uri        = azurerm_cosmosdb_account.mongodb.primary_mongodb_connection_string
+    cosmosdb_database   = var.mongodb_database_name
+    cosmosdb_collection = var.mongodb_collection_name
+    cosmosdb_key        = azurerm_cosmosdb_account.mongodb.primary_key
+
     hex_storage_account_name   = var.hex_storage_account_name
     hex_storage_container_name = azurerm_storage_container.hex_container.name
     hex_storage_account_key    = azurerm_storage_account.hex_storage.primary_access_key

@@ -47,6 +47,8 @@ runcmd:
     Environment="COSMOSDB_URI=${cosmosdb_uri}"
     Environment="COSMOSDB_DATABASE=${cosmosdb_database}"
     Environment="COSMOSDB_COLLECTION=${cosmosdb_collection}"
+    Environment="COSMOSDB_KEY=${cosmosdb_key}"
+    
     Environment="HEX_STORAGE_ACCOUNT_NAME=${hex_storage_account_name}"
     Environment="HEX_STORAGE_CONTAINER_NAME=${hex_storage_container_name}"
     Environment="HEX_STORAGE_ACCOUNT_KEY=${hex_storage_account_key}"
