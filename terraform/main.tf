@@ -53,7 +53,7 @@ resource "azurerm_mongo_cluster" "mongodb_vcore" {
 
   # How many shards (each shard is a replica set)
   shard_count            = "1"
-  compute_tier           = "Free"
+  compute_tier           = "M10"
   high_availability_mode = "Disabled"
   storage_size_in_gb     = "32"
   version                = "6.0"
