@@ -56,6 +56,7 @@ resource "azurerm_mongo_cluster" "mongodb_vcore" {
   compute_tier           = "Free"
   high_availability_mode = "Disabled"
   storage_size_in_gb     = "32"
+  version                = "6.0"
 }
 
 
