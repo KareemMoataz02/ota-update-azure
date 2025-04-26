@@ -34,7 +34,10 @@ class DatabaseManager:
             self.client = MongoClient(
                 srv_uri,
                 tlsCAFile=certifi.where(),
-                serverSelectionTimeoutMS=10000
+                serverSelectionTimeoutMS=10000,
+                directConnection=True,
+                retryWrites=False,
+                server_api=ServerApi("1"),
             )
             # Verify the connection
             self.client.admin.command('ping')
