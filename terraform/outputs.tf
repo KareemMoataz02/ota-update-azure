@@ -9,8 +9,8 @@ output "hmi_vm_public_ip" {
 }
 
 output "env_cosmosdb_uri" {
-  description = "Environment variable assignment for Cosmos DB URI"
-  value       = "COSMOSDB_URI=${azurerm_cosmosdb_account.mongodb.primary_mongodb_connection_string}"
+  value       = azurerm_mongo_cluster.mongodb_vcore.connection_strings[0].value
+  description = "SRV URI for local dev"
   sensitive   = true
 }
 
@@ -41,3 +41,5 @@ output "env_hex_storage_account_key" {
   value       = "HEX_STORAGE_ACCOUNT_KEY=${azurerm_storage_account.hex_storage.primary_access_key}"
   sensitive   = true
 }
+
+

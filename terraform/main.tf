@@ -96,7 +96,7 @@ resource "azurerm_linux_web_app" "website_app" {
   app_settings = {
     "COSMOSDB_DATABASE"   = var.mongodb_database_name
     "COSMOSDB_COLLECTION" = var.mongodb_collection_name
-    "COSMOSDB_URI"        = azurerm_mongo_cluster.mongodb_vcore.connection_strings[0].connection_string
+    "COSMOSDB_URI"        = azurerm_mongo_cluster.mongodb_vcore.connection_strings[0].value
     "COSMOSDB_USER"       = azurerm_mongo_cluster.mongodb_vcore.administrator_username
     "COSMOSDB_KEY"        = azurerm_mongo_cluster.mongodb_vcore.administrator_password
 
@@ -251,7 +251,7 @@ resource "azurerm_linux_virtual_machine" "hmi_vm" {
   custom_data = base64encode(templatefile("cloud-init-hmi.yaml", {
     cosmosdb_database   = var.mongodb_database_name
     cosmosdb_collection = var.mongodb_collection_name
-    cosmosdb_uri        = azurerm_mongo_cluster.mongodb_vcore.connection_strings[0].connection_string
+    cosmosdb_uri        = azurerm_mongo_cluster.mongodb_vcore.connection_strings[0].value
     cosmosdb_user       = azurerm_mongo_cluster.mongodb_vcore.administrator_username
     cosmosdb_key        = azurerm_mongo_cluster.mongodb_vcore.administrator_password
 
