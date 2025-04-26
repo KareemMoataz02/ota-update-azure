@@ -29,12 +29,13 @@ class DatabaseManager:
         # inside DatabaseManager.__init__:
 
         # Hard-coded SRV URI with encoded credentials:
+        # P@ssword1234! → P%40ssword1234%21
         srv_uri = (
             "mongodb+srv://azureuser:P%40ssword1234%21"
             "@otamongodbacc.global.mongocluster.cosmos.azure.com/"
             "?tls=true"
             "&authMechanism=SCRAM-SHA-256"
-            "&retrywrites=false"
+            "&retryWrites=false"
             "&maxIdleTimeMS=120000"
         )
 
@@ -46,8 +47,6 @@ class DatabaseManager:
                 srv_uri,
                 tlsCAFile=certifi.where(),
                 serverSelectionTimeoutMS=10000,
-                directConnection=True,
-                retryWrites=False,
                 server_api=ServerApi("1"),
             )
             # Verify the connection
