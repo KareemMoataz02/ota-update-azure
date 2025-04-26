@@ -76,9 +76,14 @@ locals {
 }
 
 locals {
-  # Build a standard SRV string yourself
-  mongo_srv = "mongodb+srv://${var.mongo_admin_username}:${var.mongo_admin_password}@${azurerm_mongo_cluster.mongodb_vcore.name}.global.mongocluster.cosmos.azure.com:10260/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000"
+  mongo_srv = format(
+    "mongodb+srv://%s:%s@%s.global.mongocluster.cosmos.azure.com:10260/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+    urlencode(var.mongo_admin_username),
+    urlencode(var.mongo_admin_password),
+    azurerm_mongo_cluster.mongodb_vcore.name,
+  )
 }
+
 
 #############################################
 # 1) Create the Web App (no compose here)   #

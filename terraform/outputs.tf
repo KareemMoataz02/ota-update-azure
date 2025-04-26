@@ -9,7 +9,7 @@ output "hmi_vm_public_ip" {
 }
 
 output "env_cosmosdb_uri" {
-  value       = azurerm_mongo_cluster.mongodb_vcore.connection_strings[0].value
+  value       = local.mongo_srv
   description = "SRV URI for local dev"
   sensitive   = true
 }
