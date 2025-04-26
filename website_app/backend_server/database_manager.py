@@ -31,7 +31,7 @@ class DatabaseManager:
         # Hard-coded SRV URI with encoded credentials:
         srv_uri = (
             "mongodb+srv://azureuser:P%40ssword1234%21"
-            "@otamongodbacc.global.mongocluster.cosmos.azure.com:10260/"
+            "@otamongodbacc.global.mongocluster.cosmos.azure.com/"
             "?tls=true"
             "&authMechanism=SCRAM-SHA-256"
             "&retrywrites=false"
