@@ -26,7 +26,18 @@ class DatabaseManager:
         os.makedirs(data_directory, exist_ok=True)
 
         # Read the fully-qualified SRV URI and database name from environment
-        srv_uri = os.environ['COSMOSDB_URI']
+        # inside DatabaseManager.__init__:
+
+        # Hard-coded SRV URI with encoded credentials:
+        srv_uri = (
+            "mongodb+srv://azureuser:P%40ssword1234%21"
+            "@otamongodbacc.global.mongocluster.cosmos.azure.com:10260/"
+            "?tls=true"
+            "&authMechanism=SCRAM-SHA-256"
+            "&retrywrites=false"
+            "&maxIdleTimeMS=120000"
+        )
+
         dbname = os.environ.get('COSMOSDB_DATABASE', 'ota_update_db')
 
         try:
