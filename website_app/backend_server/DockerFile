@@ -31,7 +31,3 @@ CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:80", "--workers", "1", "--timeout
 
 # CMD ["gunicorn", "-w", "3", "-b", "0.0.0.0:80", "backend_server.app:create_app()"]
 
-
-
-
-

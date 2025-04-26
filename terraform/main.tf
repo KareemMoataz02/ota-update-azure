@@ -39,59 +39,25 @@ resource "azurerm_resource_group" "rg" {
   location = var.location
 }
 
-# -------------------------------
-# NoSQL Database (Azure Cosmos DB with MongoDB API, optimized for least cost)
-# -------------------------------
-resource "azurerm_cosmosdb_account" "mongodb" {
-  name                 = var.cosmosdb_account_name
-  location             = azurerm_resource_group.rg.location
-  resource_group_name  = azurerm_resource_group.rg.name
-  offer_type           = "Standard"
-  kind                 = "MongoDB"
-  free_tier_enabled    = true
-  mongo_server_version = "4.0"
-
-  capabilities {
-    name = "EnableMongo"
-  }
-
-  capabilities {
-    name = "EnableServerless"
-  }
-
-  consistency_policy {
-    consistency_level = "Session"
-  }
-
-  # Use a single region to minimize cost
-  geo_location {
-    location          = var.location
-    failover_priority = 0
-    zone_redundant    = false
-  }
-
-  automatic_failover_enabled    = false
-  public_network_access_enabled = true
-}
-
-resource "azurerm_cosmosdb_mongo_database" "mongodb_database" {
-  name                = var.mongodb_database_name
+# ---------------------------------------------------------------
+# Azure Cosmos DB for MongoDB (vCore) cluster
+# ---------------------------------------------------------------
+resource "azurerm_mongo_cluster" "mongodb_vcore" {
+  name                = var.cosmosdb_account_name
   resource_group_name = azurerm_resource_group.rg.name
-  account_name        = azurerm_cosmosdb_account.mongodb.name
+  location            = azurerm_resource_group.rg.location
+
+  # Admin credentials for the MongoDB cluster
+  administrator_username = var.mongo_admin_username
+  administrator_password = var.mongo_admin_password
+
+  # How many shards (each shard is a replica set)
+  shard_count            = "1"
+  compute_tier           = "Free"
+  high_availability_mode = "Disabled"
+  storage_size_in_gb     = "32"
 }
 
-resource "azurerm_cosmosdb_mongo_collection" "mongodb_collection" {
-  name                = var.mongodb_collection_name
-  resource_group_name = azurerm_resource_group.rg.name
-  account_name        = azurerm_cosmosdb_account.mongodb.name
-  database_name       = azurerm_cosmosdb_mongo_database.mongodb_database.name
-
-  shard_key = "_id"
-
-  index {
-    keys = ["_id"]
-  }
-}
 
 # -------------------------------
 # Website Server (Linux Web App)
@@ -128,11 +94,11 @@ resource "azurerm_linux_web_app" "website_app" {
   }
 
   app_settings = {
-    "COSMOSDB_URI"        = azurerm_cosmosdb_account.mongodb.primary_mongodb_connection_string
     "COSMOSDB_DATABASE"   = var.mongodb_database_name
     "COSMOSDB_COLLECTION" = var.mongodb_collection_name
-    "COSMOSDB_KEY"        = azurerm_cosmosdb_account.mongodb.primary_key
-
+    "COSMOSDB_URI"        = azurerm_mongo_cluster.mongodb_vcore.connection_strings[0].connection_string
+    "COSMOSDB_USER"       = azurerm_mongo_cluster.mongodb_vcore.administrator_username
+    "COSMOSDB_KEY"        = azurerm_mongo_cluster.mongodb_vcore.administrator_password
 
     "HEX_STORAGE_ACCOUNT_NAME"   = azurerm_storage_account.hex_storage.name
     "HEX_STORAGE_CONTAINER_NAME" = azurerm_storage_container.hex_container.name
@@ -283,10 +249,11 @@ resource "azurerm_linux_virtual_machine" "hmi_vm" {
   }
 
   custom_data = base64encode(templatefile("cloud-init-hmi.yaml", {
-    cosmosdb_uri        = azurerm_cosmosdb_account.mongodb.primary_mongodb_connection_string
     cosmosdb_database   = var.mongodb_database_name
     cosmosdb_collection = var.mongodb_collection_name
-    cosmosdb_key        = azurerm_cosmosdb_account.mongodb.primary_key
+    cosmosdb_uri        = azurerm_mongo_cluster.mongodb_vcore.connection_strings[0].connection_string
+    cosmosdb_user       = azurerm_mongo_cluster.mongodb_vcore.administrator_username
+    cosmosdb_key        = azurerm_mongo_cluster.mongodb_vcore.administrator_password
 
     hex_storage_account_name   = var.hex_storage_account_name
     hex_storage_container_name = azurerm_storage_container.hex_container.name

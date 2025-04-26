@@ -14,38 +14,37 @@ logger = logging.getLogger('DatabaseManager')
 
 
 class DatabaseManager:
+    """
+    Manages connections to Azure Cosmos DB (MongoDB API) via SRV URI,
+    initializes collections and indexes, and provides file-chunk utilities.
+    """
+
     def __init__(self, data_directory: str):
         logger.info(
             f"Initializing DatabaseManager with data directory: {data_directory}")
         self.data_directory = data_directory
         os.makedirs(data_directory, exist_ok=True)
 
-        account = "otamongodbacc"
-        key = os.environ["COSMOSDB_KEY"]
-        dbname = os.environ.get("COSMOSDB_DATABASE", "ota_update_db")
-
-        srv_uri = (
-            f"mongodb+srv://{account}:{key}"
-            f"@{account}.mongo.cosmos.azure.com"
-            f"/{dbname}"
-            "?ssl=true"
-            "&retryWrites=false"
-            f"&appName=@{account}@"
-        )
+        # Read the fully-qualified SRV URI and database name from environment
+        srv_uri = os.environ['COSMOSDB_URI']
+        dbname = os.environ.get('COSMOSDB_DATABASE', 'ota_update_db')
 
         try:
-            # Connect directly and disable retryable writes so pymongo won’t send 'hello'
+            # Connect via the SRV URI
             self.client = MongoClient(
                 srv_uri,
                 tlsCAFile=certifi.where(),
                 serverSelectionTimeoutMS=10000
             )
-            logger.info("Successfully connected to Cosmos DB (MongoDB API)")
+            # Verify the connection
+            self.client.admin.command('ping')
+            logger.info('Connected to Cosmos DB (MongoDB API)')
         except Exception as e:
             logger.error(f"Failed to connect to MongoDB: {e}")
             raise
 
-        self.db = self.client[os.getenv("COSMOSDB_DATABASE")]
+        # Select database
+        self.db = self.client[dbname]
 
         # Collections
         self.car_types_collection = self.db['car_types']

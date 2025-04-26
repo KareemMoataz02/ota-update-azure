@@ -87,3 +87,15 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
+
+variable "mongo_admin_username" {
+  description = "Admin username for mongo"
+  type        = string
+  default     = "azureuser"
+}
+
+variable "mongo_admin_password" {
+  description = "Admin password for mongo"
+  type        = string
+  default     = "P@ssword1234!"
+}
