@@ -3,6 +3,8 @@ import logging
 import certifi
 from pymongo import MongoClient, errors
 from pymongo.server_api import ServerApi
+from typing import Optional
+
 
 logger = logging.getLogger(__name__)
 
