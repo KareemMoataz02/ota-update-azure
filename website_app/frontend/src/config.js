@@ -8,3 +8,4 @@ export const API_CONFIG = {
     requests: "requests",
   },
 };
+export default API_CONFIG;
