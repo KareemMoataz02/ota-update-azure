@@ -6,6 +6,8 @@ from pymongo.server_api import ServerApi
 from typing import Optional
 import re
 from urllib.parse import urlparse, urlunparse
+import ssl
+import certifi
 
 
 logger = logging.getLogger(__name__)
@@ -49,10 +51,11 @@ class DatabaseManager:
             # Connect to MongoDB Atlas
             self.client = MongoClient(
                 srv_uri,
+                tls=True,
                 tlsCAFile=certifi.where(),
-                serverSelectionTimeoutMS=10_000,
-                retryWrites=False,
+                tlsAllowInvalidCertificates=False,
                 server_api=ServerApi("1"),
+                serverSelectionTimeoutMS=10_000,
             )
             # Verify the connection
             self.client.admin.command("ping")
