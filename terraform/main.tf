@@ -105,10 +105,20 @@ data "mongodbatlas_advanced_cluster" "app_cluster" {
 # -------------------------------
 # Locals
 # -------------------------------
-locals {
-  mongo_srv = data.mongodbatlas_advanced_cluster.app_cluster.connection_strings[0].standard_srv
-}
+# locals {
+#   mongo_srv = data.mongodbatlas_advanced_cluster.app_cluster.connection_strings[0].standard_srv
+# }
 
+locals {
+  cluster_host = data.mongodbatlas_advanced_cluster.app_cluster.connection_strings[0].standard_srv
+  mongo_srv = format(
+    "mongodb+srv://%s:%s@%s/%s?retryWrites=true&w=majority",
+    var.mongo_user,
+    var.mongo_password,
+    local.cluster_host,
+    var.mongodb_database_name,
+  )
+}
 
 # -------------------------------
 # Website Service Plan & Web App

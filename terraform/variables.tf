@@ -115,6 +115,6 @@ variable "mongo_password" {
 variable "app_vnet_cidr" {
   description = "CIDR block of the Azure VNet/subnet to allow access to Atlas"
   type        = string
-  default     = "10.0.1.0/24"
+  default     = "0.0.0.0/0"
 }
 
