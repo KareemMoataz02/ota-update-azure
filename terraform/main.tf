@@ -99,7 +99,7 @@ resource "mongodbatlas_database_user" "app_user" {
   }
 }
 
-data "mongodbatlas_cluster" "app_cluster" {
+data "mongodbatlas_advanced_cluster" "app_cluster" {
   project_id = mongodbatlas_project.app.id
   name       = mongodbatlas_advanced_cluster.app_cluster.name
 }
