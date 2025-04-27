@@ -62,7 +62,7 @@ resource "mongodbatlas_advanced_cluster" "app_cluster" {
       # FREE-TIER (Tenant) settings
       provider_name         = "TENANT"
       backing_provider_name = "AZURE"
-      region_name           = "EAST_US_2"
+      region_name           = "US_EAST_2"
       priority              = 7
 
 
