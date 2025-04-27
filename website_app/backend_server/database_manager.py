@@ -20,27 +20,28 @@ class DatabaseManager:
         self.data_directory = data_directory
         os.makedirs(data_directory, exist_ok=True)
 
-        # Read the full SRV URI and target database from environment
-        srv_uri = os.environ["MONGO_URI"]
+        # # Read the full SRV URI and target database from environment
+        # srv_uri = os.environ["MONGO_URI"]
 
-        # Only strip a port if this is a mongodb+srv URI
-        parsed = urlparse(srv_uri)
-        if parsed.scheme == "mongodb+srv":
-            # rebuild the “netloc” without the port
-            # parsed.username/password are already URL‐decoded
-            auth = ""
-            if parsed.username:
-                auth = parsed.username
-                if parsed.password:
-                    auth += f":{parsed.password}"
-                auth += "@"
+        # # Only strip a port if this is a mongodb+srv URI
+        # parsed = urlparse(srv_uri)
+        # if parsed.scheme == "mongodb+srv":
+        #     # rebuild the “netloc” without the port
+        #     # parsed.username/password are already URL‐decoded
+        #     auth = ""
+        #     if parsed.username:
+        #         auth = parsed.username
+        #         if parsed.password:
+        #             auth += f":{parsed.password}"
+        #         auth += "@"
 
-            host = parsed.hostname       # e.g. "mycosmoscluster.mongo.cosmos.azure.com"
-            new_netloc = auth + host     # drops any ":10260" that was there
+        #     host = parsed.hostname       # e.g. "mycosmoscluster.mongo.cosmos.azure.com"
+        #     new_netloc = auth + host     # drops any ":10260" that was there
 
-            # put it all back together
-            parsed = parsed._replace(netloc=new_netloc)
-            srv_uri = urlunparse(parsed)
+        #     # put it all back together
+        #     parsed = parsed._replace(netloc=new_netloc)
+        #     srv_uri = urlunparse(parsed)
+        srv_uri = "mongodb+srv://20p4361:2q0E66zKfJ659Wys@ota-azure-cluster.xdekzhl.mongodb.net/?retryWrites=true&w=majority&appName=ota-azure-cluster"
         if not srv_uri:
             raise ValueError(
                 "Environment variable MONGO_URI must be set to your Atlas connection string")
