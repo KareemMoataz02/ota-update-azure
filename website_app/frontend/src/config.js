@@ -1,9 +1,9 @@
-// API configuration
+// api.js
 const API_CONFIG = {
-  baseURL: "https://ota-website-app.azurewebsites.net/api" || "http://localhost:5000/api" ,
+  baseURL: process.env.REACT_APP_API_URL,   // comes from the build-time ENV
   endpoints: {
     carTypes: "/car-types",
-    ecus: "/ecus",
+    ecus:     "/ecus",
     versions: "/versions",
     requests: "/requests",
   },

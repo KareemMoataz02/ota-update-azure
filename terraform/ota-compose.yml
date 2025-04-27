@@ -1,18 +1,24 @@
 version: "3.8"
 
-networks:
-  ota-net:
-    driver: bridge
-
 services:
+
+  frontend:
+    build:
+      context: ./website_app/frontend_server
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: https://ota-website-app.azurewebsites.net/api
+    image: kareemmoataz13/ota-frontend:latest
+    ports:
+      - "80:80"
 
   backend:
     build:
       context: ./website_app/backend_server
       dockerfile: Dockerfile
     image: kareemmoataz13/ota-backend:latest
-    restart: always
     environment:
+      # your COSMOS/HEX vars…
       COSMOSDB_URI:        ${COSMOSDB_URI}
       COSMOSDB_DATABASE:   ${COSMOSDB_DATABASE}
       COSMOSDB_COLLECTION: ${COSMOSDB_COLLECTION}
@@ -20,30 +26,5 @@ services:
       HEX_STORAGE_ACCOUNT_NAME:   ${HEX_STORAGE_ACCOUNT_NAME}
       HEX_STORAGE_CONTAINER_NAME: ${HEX_STORAGE_CONTAINER_NAME}
       HEX_STORAGE_ACCOUNT_KEY:    ${HEX_STORAGE_ACCOUNT_KEY}
-    # only exposed on the internal network
     expose:
       - "80"
-    networks:
-      - ota-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/api/health || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-
-  frontend:
-    build:
-      context: ./website_app/frontend_server
-      dockerfile: Dockerfile
-    image: kareemmoataz13/ota-frontend:latest
-    restart: always
-    depends_on:
-      backend:
-        condition: service_healthy
-    environment:
-      # pointing at the backend’s container name on the same network
-      EXPO_PUBLIC_API_URL: http://backend:80/api
-    ports:
-      - "80:80"
-    networks:
-      - ota-net
