@@ -67,7 +67,7 @@ resource "mongodbatlas_advanced_cluster" "app_cluster" {
 
       # electable_specs for M0; no node_count implies the default 1
       electable_specs {
-        instance_size = "M0"
+        instance_size = "M10"
       }
     }
   }
