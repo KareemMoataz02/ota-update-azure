@@ -50,7 +50,7 @@ class DatabaseManager:
 
         try:
             # Connect to MongoDB Atlas
-            client = MongoClient(srv_uri, server_api=ServerApi('1'))
+            self.client = MongoClient(srv_uri, server_api=ServerApi('1'))
             # Verify the connection
             self.client.admin.command("ping")
             logger.info("Connected to MongoDB Atlas cluster")
