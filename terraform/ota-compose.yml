@@ -1,28 +1,49 @@
 version: "3.8"
-services:
 
-  frontend:
-    build:
-      context: ./website_app/frontend_server
-      dockerfile: Dockerfile
-    image: kareemmoataz13/ota-frontend:latest
-    environment:
-      EXPO_PUBLIC_API_URL: http://backend:80/api
-    ports:
-      - "80:80"        # <-- container port 80 exposed publicly
+networks:
+  ota-net:
+    driver: bridge
+
+services:
 
   backend:
     build:
       context: ./website_app/backend_server
       dockerfile: Dockerfile
     image: kareemmoataz13/ota-backend:latest
+    restart: always
     environment:
       COSMOSDB_URI:        ${COSMOSDB_URI}
       COSMOSDB_DATABASE:   ${COSMOSDB_DATABASE}
       COSMOSDB_COLLECTION: ${COSMOSDB_COLLECTION}
-      COSMOSDB_KEY: ${COSMOSDB_KEY}
+      COSMOSDB_KEY:        ${COSMOSDB_KEY}
       HEX_STORAGE_ACCOUNT_NAME:   ${HEX_STORAGE_ACCOUNT_NAME}
       HEX_STORAGE_CONTAINER_NAME: ${HEX_STORAGE_CONTAINER_NAME}
       HEX_STORAGE_ACCOUNT_KEY:    ${HEX_STORAGE_ACCOUNT_KEY}
+    # only exposed on the internal network
     expose:
-      - "80"              # internal only
+      - "80"
+    networks:
+      - ota-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./website_app/frontend_server
+      dockerfile: Dockerfile
+    image: kareemmoataz13/ota-frontend:latest
+    restart: always
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      # pointing at the backend’s container name on the same network
+      EXPO_PUBLIC_API_URL: http://backend:80/api
+    ports:
+      - "80:80"
+    networks:
+      - ota-net

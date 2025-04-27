@@ -27,8 +27,6 @@ COPY website_app/backend_server/ .
 EXPOSE 80
 # If app.py contains `app = create_app()`:
 CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:80", "--workers", "1", "--timeout", "120"]
-
-
 # CMD ["gunicorn", "-w", "3", "-b", "0.0.0.0:80", "backend_server.app:create_app()"]
 
 
