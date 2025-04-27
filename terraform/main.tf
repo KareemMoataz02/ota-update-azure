@@ -62,12 +62,13 @@ resource "mongodbatlas_advanced_cluster" "app_cluster" {
       # FREE-TIER (Tenant) settings
       provider_name         = "TENANT"
       backing_provider_name = "AZURE"
-      region_name           = upper(var.location) # e.g. "UAENORTH"
+      region_name           = "East_US_2"
       priority              = 7
+
 
       # electable_specs for M0; no node_count implies the default 1
       electable_specs {
-        instance_size = "M10"
+        instance_size = "M0"
       }
     }
   }
