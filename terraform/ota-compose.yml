@@ -4,7 +4,7 @@ services:
 
   frontend:
     build:
-      context: ./website_app/frontend_server
+      context: ./website_app/frontend
       dockerfile: Dockerfile
       args:
         REACT_APP_API_URL: https://ota-website-app.azurewebsites.net/api
