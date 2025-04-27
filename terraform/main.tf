@@ -52,14 +52,34 @@ resource "mongodbatlas_project" "app" {
   org_id = var.atlas_org_id
 }
 
-resource "mongodbatlas_cluster" "app_cluster" {
-  project_id                  = mongodbatlas_project.app.id
-  name                        = var.atlas_cluster_name
-  cluster_type                = "REPLICASET"
-  provider_name               = "AZURE"
-  provider_region_name        = var.location
-  provider_instance_size_name = "M0"
+resource "mongodbatlas_advanced_cluster" "app_cluster" {
+  project_id   = mongodbatlas_project.app.id
+  name         = var.atlas_cluster_name
+  cluster_type = "REPLICASET"
+
+  replication_specs {
+    region_configs {
+      # FREE-TIER (Tenant) settings
+      provider_name         = "TENANT"
+      backing_provider_name = "AZURE"
+      region_name           = upper(var.location) # e.g. "UAENORTH"
+      priority              = 7
+
+      # electable_specs for M0; no node_count implies the default 1
+      electable_specs {
+        instance_size = "M0"
+      }
+    }
+  }
+
+  # disable backups (not supported on M0)
+  backup_enabled = false
+
+  # pin everything to M0
+  mongo_db_major_version = "6.0"
+  version_release_system = "LTS"
 }
+
 
 resource "mongodbatlas_project_ip_access_list" "app_access" {
   project_id = mongodbatlas_project.app.id
