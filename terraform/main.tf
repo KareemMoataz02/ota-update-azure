@@ -74,10 +74,7 @@ resource "mongodbatlas_advanced_cluster" "app_cluster" {
   }
 
   # disable backups (not supported on M0)
-  backup_enabled = false
-
-  # pin everything to M0
-  mongo_db_major_version = "6.0"
+  backup_enabled         = false
   version_release_system = "LTS"
 }
 
