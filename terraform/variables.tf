@@ -73,7 +73,7 @@ variable "mongodb_collection_name" {
 variable "atlas_org_id" {
   description = "The MongoDB Atlas organization ID"
   type        = string
-  default     = "5abcde12345fgh67890ijklm" # replace with your Org ID
+  default     = "680deb38edf9f57a1dcff86f"
 }
 
 variable "atlas_project_name" {
@@ -103,13 +103,13 @@ variable "atlas_private_key" {
 variable "mongo_user" {
   description = "MongoDB Atlas database user name"
   type        = string
-  default     = "otaAppUser"
+  default     = "20p4361"
 }
 
 variable "mongo_password" {
   description = "MongoDB Atlas database user password"
   type        = string
-  default     = "P@ssword1234!"
+  default     = "2q0E66zKfJ659Wys"
 }
 
 variable "app_vnet_cidr" {

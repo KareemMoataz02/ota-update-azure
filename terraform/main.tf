@@ -197,6 +197,7 @@ resource "azurerm_network_security_group" "hmi_nsg" {
     protocol                   = "Tcp"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
+    source_port_range          = "*"
     destination_port_range     = "22"
   }
 
@@ -208,6 +209,7 @@ resource "azurerm_network_security_group" "hmi_nsg" {
     protocol                   = "Tcp"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
+    source_port_range          = "*"
     destination_port_range     = "9000"
   }
 }
@@ -240,7 +242,7 @@ resource "azurerm_network_interface_security_group_association" "hmi_nic_associa
 resource "azurerm_linux_virtual_machine" "hmi_vm" {
   name                            = var.hmi_vm_name
   resource_group_name             = azurerm_resource_group.rg.name
-  location                        = var.location
+  location                        = azurerm_resource_group.rg.location
   size                            = "Standard_B1s"
   admin_username                  = var.hmi_vm_admin_username
   admin_password                  = var.hmi_vm_admin_password
