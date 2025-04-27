@@ -2,7 +2,7 @@ Flask==2.3.3
 Flask-Cors==4.0.0
 python-dotenv==1.0.0
 gunicorn==21.2.0
-azure-storage-blob
+azure-storage-blob==12.28.1
 
 # For DNS lookups in mongodb+srv URIs
 dnspython==2.4.2
@@ -10,4 +10,3 @@ dnspython==2.4.2
 # Pin PyMongo (with srv extra!) to 3.12.3
 pymongo==3.12.3
 certifi==2023.5.7
-typing

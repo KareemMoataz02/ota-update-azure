@@ -4,6 +4,8 @@ import certifi
 from pymongo import MongoClient, errors
 from pymongo.server_api import ServerApi
 from typing import Optional
+import re
+from urllib.parse import urlparse, urlunparse
 
 
 logger = logging.getLogger(__name__)
@@ -17,7 +19,26 @@ class DatabaseManager:
         os.makedirs(data_directory, exist_ok=True)
 
         # Read the full SRV URI and target database from environment
-        srv_uri = os.environ.get("MONGO_URI")
+        srv_uri = os.environ["MONGO_URI"]
+
+        # Only strip a port if this is a mongodb+srv URI
+        parsed = urlparse(srv_uri)
+        if parsed.scheme == "mongodb+srv":
+            # rebuild the “netloc” without the port
+            # parsed.username/password are already URL‐decoded
+            auth = ""
+            if parsed.username:
+                auth = parsed.username
+                if parsed.password:
+                    auth += f":{parsed.password}"
+                auth += "@"
+
+            host = parsed.hostname       # e.g. "mycosmoscluster.mongo.cosmos.azure.com"
+            new_netloc = auth + host     # drops any ":10260" that was there
+
+            # put it all back together
+            parsed = parsed._replace(netloc=new_netloc)
+            srv_uri = urlunparse(parsed)
         if not srv_uri:
             raise ValueError(
                 "Environment variable MONGO_URI must be set to your Atlas connection string")
