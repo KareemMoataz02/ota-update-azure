@@ -61,9 +61,9 @@ resource "mongodbatlas_cluster" "app_cluster" {
   provider_instance_size_name = "M0"
 }
 
-resource "mongodbatlas_ip_access_list" "app_access" {
+resource "mongodbatlas_project_ip_access_list" "app_access" {
   project_id = mongodbatlas_project.app.id
-  cidr_block = var.app_vnet_cidr
+  ip_address = var.app_vnet_cidr
   comment    = "Allow App Service / VNet"
 }
 
