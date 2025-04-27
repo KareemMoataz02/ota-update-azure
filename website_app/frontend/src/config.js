@@ -1,10 +1,12 @@
-// src/config.js
-export default {
-  baseURL: process.env.REACT_APP_API_URL?.replace(/\/$/, "") || "https://ota-website-app.azurewebsites.net/api",
+// API configuration
+const API_CONFIG = {
+  baseURL: "https://ota-website-app.azurewebsites.net/api" || "http://localhost:5000/api" ,
   endpoints: {
-    carTypes:   "/car-types",
-    ecus:       "/ecus",
-    versions:   "/versions",
-    requests:   "/requests",
+    carTypes: "/car-types",
+    ecus: "/ecus",
+    versions: "/versions",
+    requests: "/requests",
   },
 };
+
+export default API_CONFIG;
