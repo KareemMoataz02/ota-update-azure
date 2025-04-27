@@ -20,6 +20,7 @@ class DatabaseManager:
         # # Read the full SRV URI and target database from environment
         srv_uri = os.environ["MONGO_URI"]
         # srv_uri = "mongodb+srv://20p4361:2q0E66zKfJ659Wys@ota-azure-cluster.xdekzhl.mongodb.net/?retryWrites=true&w=majority&appName=ota-azure-cluster"
+        # mongodb+srv://20p4361:2q0E66zKfJ659Wys@ota-azure-cluster.xdekzhl.mongodb.net/otaMongoDb?retryWrites=true&w=majority
         if not srv_uri:
             raise ValueError(
                 "Environment variable MONGO_URI must be set to your Atlas connection string")

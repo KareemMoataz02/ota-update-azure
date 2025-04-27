@@ -117,11 +117,12 @@ locals {
 
   # Build the full SRV URI
   mongo_srv = format(
-    "mongodb+srv://%s:%s@%s/%s?retryWrites=true&w=majority",
+    "mongodb+srv://%s:%s@%s/%s?retryWrites=true&w=majority&appName=%s",
     var.mongo_user,
     var.mongo_password,
     local.cluster_host,
-    var.mongodb_database_name
+    var.mongodb_database_name,
+    var.atlas_cluster_name
   )
 }
 
