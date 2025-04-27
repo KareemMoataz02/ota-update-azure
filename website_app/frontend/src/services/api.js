@@ -9,6 +9,7 @@ const api = {
    * @returns {Promise<Object>} - Response data
    */
   async get(endpoint, params = {}) {
+    console.log("⛔️ building URL from:", API_CONFIG.baseURL, endpoint);
     const url = new URL(`${API_CONFIG.baseURL}${endpoint}`);
 
     // Add query parameters
