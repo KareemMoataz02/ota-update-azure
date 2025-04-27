@@ -23,7 +23,7 @@ class DatabaseManager:
             raise ValueError(
                 "Environment variable MONGO_URI must be set to your Atlas connection string")
 
-        dbname = os.environ.get("MONGO_DB", "otaMongoDb")
+        dbname = os.environ["MONGO_DB"]
 
         try:
             # Connect to MongoDB Atlas

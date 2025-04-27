@@ -118,15 +118,13 @@ locals {
 
   # Build the SRV URI: user, pass, host, DB name, then query params
   mongo_srv = format(
-    "mongodb+srv://%s:%s@%s/%s?retryWrites=true&w=majority&appName=%s",
+    "mongodb+srv://%s:%s@%s/?retryWrites=true&w=majority&appName=%s",
     var.mongo_user,
     var.mongo_password,
     local.cluster_host,
-    var.mongodb_database_name,
     var.atlas_cluster_name
   )
 }
-
 
 # -------------------------------
 # Website Service Plan & Web App
