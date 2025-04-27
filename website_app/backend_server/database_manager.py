@@ -1,59 +1,41 @@
 import os
-from typing import Dict, List, Optional
-from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
-from bson.binary import Binary
-from bson import ObjectId
 import logging
 import certifi
+from pymongo import MongoClient, errors
+from pymongo.server_api import ServerApi
 
-# Configure logging
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger('DatabaseManager')
+logger = logging.getLogger(__name__)
 
 
 class DatabaseManager:
-    """
-    Manages connections to Azure Cosmos DB (MongoDB API) via SRV URI,
-    initializes collections and indexes, and provides file-chunk utilities.
-    """
-
     def __init__(self, data_directory: str):
         logger.info(
             f"Initializing DatabaseManager with data directory: {data_directory}")
         self.data_directory = data_directory
         os.makedirs(data_directory, exist_ok=True)
 
-        # Read the fully-qualified SRV URI and database name from environment
-        # inside DatabaseManager.__init__:
+        # Read the full SRV URI and target database from environment
+        srv_uri = os.environ.get("MONGO_URI")
+        if not srv_uri:
+            raise ValueError(
+                "Environment variable MONGO_URI must be set to your Atlas connection string")
 
-        # Hard-coded SRV URI with encoded credentials:
-        # P@ssword1234! → P%40ssword1234%21
-        srv_uri = (
-            "mongodb+srv://azureuser:P%40ssword1234%21"
-            "@otamongodbacc.global.mongocluster.cosmos.azure.com/"
-            "?tls=true"
-            "&authMechanism=SCRAM-SHA-256"
-            "&retryWrites=false"
-            "&maxIdleTimeMS=120000"
-        )
-
-        dbname = os.environ.get('COSMOSDB_DATABASE', 'ota_update_db')
+        dbname = os.environ.get("MONGO_DB", "otaMongoDb")
 
         try:
-            # Connect via the SRV URI
+            # Connect to MongoDB Atlas
             self.client = MongoClient(
                 srv_uri,
                 tlsCAFile=certifi.where(),
-                serverSelectionTimeoutMS=10000,
+                serverSelectionTimeoutMS=10_000,
+                retryWrites=False,
                 server_api=ServerApi("1"),
             )
             # Verify the connection
-            self.client.admin.command('ping')
-            logger.info('Connected to Cosmos DB (MongoDB API)')
-        except Exception as e:
-            logger.error(f"Failed to connect to MongoDB: {e}")
+            self.client.admin.command("ping")
+            logger.info("Connected to MongoDB Atlas cluster")
+        except errors.PyMongoError as e:
+            logger.error(f"Failed to connect to MongoDB Atlas: {e}")
             raise
 
         # Select database

@@ -13,32 +13,29 @@ variable "location" {
   default     = "uaenorth"
 }
 
+variable "subscription_id" {
+  description = "Azure subscription ID"
+  type        = string
+  default     = "ec34342c-37de-48d7-a62d-6d8cbf370531"
+}
+
+variable "environment" {
+  description = "The deployment environment (e.g., dev, staging, prod)."
+  type        = string
+  default     = "dev"
+}
+
 variable "website_app_name" {
   description = "The name of the Web App for the upload website"
   type        = string
   default     = "ota-website-app"
 }
 
-
-variable "cosmosdb_account_name" {
-  description = "The name of the Azure Cosmos DB account that uses the MongoDB API."
+variable "hex_storage_account_name" {
+  description = "The name of the Storage Account for HEX files"
   type        = string
-  default     = "otamongodbacc"
+  default     = "otahexstorage"
 }
-
-
-variable "mongodb_database_name" {
-  description = "The MongoDB database name within the Cosmos DB account."
-  type        = string
-  default     = "otaMongoDb"
-}
-
-variable "mongodb_collection_name" {
-  description = "The name of the MongoDB collection to store your data."
-  type        = string
-  default     = "otaCollection"
-}
-
 
 variable "hmi_vm_name" {
   description = "The name of the Virtual Machine hosting the HMI server"
@@ -58,44 +55,65 @@ variable "hmi_vm_admin_password" {
   default     = "P@ssword1234!"
 }
 
-variable "website_zip_path" {
-  description = "Local path to the website app ZIP package"
+variable "mongodb_database_name" {
+  description = "The MongoDB database name within Atlas"
   type        = string
-  default     = "../website_app/website_app.zip"
+  default     = "otaMongoDb"
 }
 
-variable "hex_storage_account_name" {
-  description = "The name of the Storage Account for HEX files"
+variable "mongodb_collection_name" {
+  description = "The name of the MongoDB collection to store your data."
   type        = string
-  default     = "otahexstorage"
+  default     = "otaCollection"
 }
 
-variable "website_code_container_name" {
-  description = "The container name for storing website code"
+#############################
+# MongoDB Atlas Variables
+#############################
+variable "atlas_org_id" {
+  description = "The MongoDB Atlas organization ID"
   type        = string
-  default     = "website-code"
+  default     = "5abcde12345fgh67890ijklm" # replace with your Org ID
 }
 
-variable "tfstate_storage_account_name" {
-  description = "The globally unique name for the storage account to store Terraform state."
+variable "atlas_project_name" {
+  description = "The MongoDB Atlas project name"
   type        = string
-  default     = "otatfstateacc"
+  default     = "ota-terraform-project"
 }
 
-variable "environment" {
-  description = "The deployment environment (e.g., dev, staging, prod)."
+variable "atlas_cluster_name" {
+  description = "The MongoDB Atlas cluster name"
   type        = string
-  default     = "dev"
+  default     = "ota-azure-cluster"
 }
 
-variable "mongo_admin_username" {
-  description = "Admin username for mongo"
+variable "atlas_public_key" {
+  description = "MongoDB Atlas API public key"
   type        = string
-  default     = "azureuser"
+  default     = "vktecnqd"
 }
 
-variable "mongo_admin_password" {
-  description = "Admin password for mongo"
+variable "atlas_private_key" {
+  description = "MongoDB Atlas API private key"
+  type        = string
+  default     = "cee9772e-938a-4a1e-ab50-8dc938cbae91"
+}
+
+variable "mongo_user" {
+  description = "MongoDB Atlas database user name"
+  type        = string
+  default     = "otaAppUser"
+}
+
+variable "mongo_password" {
+  description = "MongoDB Atlas database user password"
   type        = string
   default     = "P@ssword1234!"
+}
+
+variable "app_vnet_cidr" {
+  description = "CIDR block of the Azure VNet/subnet to allow access to Atlas"
+  type        = string
+  default     = "10.0.1.0/24"
 }
