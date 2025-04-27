@@ -101,15 +101,16 @@ resource "mongodbatlas_database_user" "app_user" {
 
 data "mongodbatlas_cluster" "app_cluster" {
   project_id = mongodbatlas_project.app.id
-  name       = mongodbatlas_cluster.app_cluster.name
+  name       = mongodbatlas_advanced_cluster.app_cluster.name
 }
 
 # -------------------------------
 # Locals
 # -------------------------------
 locals {
-  mongo_srv = data.mongodbatlas_cluster.app_cluster.connection_strings[0].standard_srv
+  mongo_srv = data.mongodbatlas_advanced_cluster.app_cluster.connection_strings[0].standard_srv
 }
+
 
 # -------------------------------
 # Website Service Plan & Web App
@@ -142,6 +143,7 @@ resource "azurerm_linux_web_app" "website_app" {
     "MONGO_USER"     = mongodbatlas_database_user.app_user.username
     "MONGO_PASSWORD" = mongodbatlas_database_user.app_user.password
     "MONGO_DB"       = var.mongodb_database_name
+
 
     "HEX_STORAGE_ACCOUNT_NAME"   = azurerm_storage_account.hex_storage.name
     "HEX_STORAGE_CONTAINER_NAME" = azurerm_storage_container.hex_container.name
