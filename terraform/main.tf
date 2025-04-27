@@ -63,7 +63,7 @@ resource "mongodbatlas_cluster" "app_cluster" {
 
 resource "mongodbatlas_project_ip_access_list" "app_access" {
   project_id = mongodbatlas_project.app.id
-  ip_address = var.app_vnet_cidr
+  cidr_block = var.app_vnet_cidr
   comment    = "Allow App Service / VNet"
 }
 
