@@ -79,7 +79,7 @@ variable "atlas_org_id" {
 variable "atlas_project_name" {
   description = "The MongoDB Atlas project name"
   type        = string
-  default     = "ota-terraform-project"
+  default     = "ota-terraform"
 }
 
 variable "atlas_cluster_name" {
