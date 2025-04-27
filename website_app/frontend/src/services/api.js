@@ -19,7 +19,7 @@ const api = {
     });
 
     try {
-      const response = await fetch(url.toString(), {
+      const response = await fetch(url.toString() + "/", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
