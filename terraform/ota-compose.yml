@@ -3,18 +3,18 @@ services:
 
   frontend:
     build:
-      context: ./website_app/frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: website_app/frontend/DockerFile
     image: kareemmoataz13/ota-frontend:latest
     environment:
       EXPO_PUBLIC_API_URL: http://backend:80/api
     ports:
-      - "80:80"        
+      - "80:80"       
 
   backend:
     build:
-      context: ./website_app/backend_server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: website_app/backend_server/DockerFile
     image: kareemmoataz13/ota-backend:latest
     environment:
       COSMOSDB_URI:        ${COSMOSDB_URI}
@@ -25,4 +25,4 @@ services:
       HEX_STORAGE_CONTAINER_NAME: ${HEX_STORAGE_CONTAINER_NAME}
       HEX_STORAGE_ACCOUNT_KEY:    ${HEX_STORAGE_ACCOUNT_KEY}
     expose:
-      - "80"              
+      - "80"             
