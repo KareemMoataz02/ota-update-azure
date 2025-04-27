@@ -110,15 +110,21 @@ data "mongodbatlas_advanced_cluster" "app_cluster" {
 # }
 
 locals {
-  cluster_host = data.mongodbatlas_advanced_cluster.app_cluster.connection_strings[0].standard_srv
+  cluster_host = replace(
+    data.mongodbatlas_advanced_cluster.app_cluster.connection_strings[0].standard_srv,
+    "mongodb+srv://", ""
+  )
+
+  # Build the full SRV URI
   mongo_srv = format(
     "mongodb+srv://%s:%s@%s/%s?retryWrites=true&w=majority",
     var.mongo_user,
     var.mongo_password,
     local.cluster_host,
-    var.mongodb_database_name,
+    var.mongodb_database_name
   )
 }
+
 
 # -------------------------------
 # Website Service Plan & Web App
