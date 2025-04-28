@@ -4,59 +4,62 @@ packages:
   - python3-pip
   - python3-dev
   - git
-  - openssh-client
+  - curl
 
 runcmd:
-  # ---------------------------------------------------------------------------
-  # SSH Setup for Accessing a Private GitHub Repository:
-  # ---------------------------------------------------------------------------
-  - mkdir -p /home/azureuser/.ssh
-  - |
-    cat << 'EOF' > /home/azureuser/.ssh/id_rsa
-    -----BEGIN OPENSSH PRIVATE KEY-----
-    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-    QyNTUxOQAAACAzOOe9yHutSCFnzo+WrqphBUv0AaONqIxt0AS3gj7cQQAAAKD9mM6k/ZjO
-    pAAAAAtzc2gtZWQyNTUxOQAAACAzOOe9yHutSCFnzo+WrqphBUv0AaONqIxt0AS3gj7cQQ
-    AAAEDcNQ2KgXywgblSWuHWMzHRwku4382PlK/LwFE8sNePPTM4573Ie61IIWfOj5auqmEF
-    S/QBo42ojG3QBLeCPtxBAAAAGGthcmVlbW1vYXRhejEzQGdtYWlsLmNvbQECAwQF
-    -----END OPENSSH PRIVATE KEY-----
-    EOF
-  - chmod 600 /home/azureuser/.ssh/id_rsa
-  - ssh-keyscan github.com >> /home/azureuser/.ssh/known_hosts
-  - chown -R azureuser:azureuser /home/azureuser/.ssh
-
-  # ---------------------------------------------------------------------------
-  # Clone the Private Repository and Set Up the New HMI Socket Server
-  # ---------------------------------------------------------------------------
-  - sudo mkdir -p /opt/ota-update-azure
-  - sudo chown azureuser:azureuser /opt/ota-update-azure
-  - sudo -u azureuser bash -c "cd /opt/ota-update-azure && git clone git@github.com:KareemMoataz02/ota-update-azure.git ."
+  # ------------------------------------------------------------
+  # 1) Clone & install your HMI server code
+  # ------------------------------------------------------------
+  - mkdir -p /opt/ota-update-azure
+  - chown azureuser:azureuser /opt/ota-update-azure
+  - sudo -u azureuser bash -lc "git clone git@github.com:KareemMoataz02/ota-update-azure.git /opt/ota-update-azure"
   - cd /opt/ota-update-azure/hmi_server
+  - pip3 install --upgrade pip
   - pip3 install -r requirements.txt
+
+  # ------------------------------------------------------------
+  # 2) Write the systemd unit
+  # ------------------------------------------------------------
   - |
     cat << 'EOF' | sudo tee /etc/systemd/system/hmi_server.service
     [Unit]
-    Description=HMI Socket Server
+    Description=HMI Update Server (Python main.py)
     After=network.target
 
     [Service]
     User=azureuser
     WorkingDirectory=/opt/ota-update-azure/hmi_server
-    ExecStart=/usr/bin/python3 socket_server.py
-    Restart=always
+
+    # CLI-flags (from your Terraform custom_data)
+    Environment="HOST=${hmi_server_host}"
+    Environment="PORT=${hmi_server_port}"
+    Environment="DATA_DIR=${hmi_data_directory}"
+
+    # Atlas / Hex Storage
     Environment="MONGO_URI=${mongodb_uri}"
-    Environment="MONGO_DB=${mongodb_database}"
-    Environment="MONGO_COLLECTION=${mongodb_collection}"
     Environment="MONGO_USER=${mongodb_user}"
     Environment="MONGO_PASSWORD=${mongodb_password}"
-    
+    Environment="MONGO_DB=${mongodb_database}"
+    Environment="MONGO_COLLECTION=${mongodb_collection}"
     Environment="HEX_STORAGE_ACCOUNT_NAME=${hex_storage_account_name}"
     Environment="HEX_STORAGE_CONTAINER_NAME=${hex_storage_container_name}"
     Environment="HEX_STORAGE_ACCOUNT_KEY=${hex_storage_account_key}"
 
+    ExecStart=/usr/bin/python3 /opt/ota-update-azure/hmi_server/main.py \
+      --host ${HOST} \
+      --port ${PORT} \
+      --data-dir ${DATA_DIR}
+
+    Restart=always
+    RestartSec=5
+
     [Install]
     WantedBy=multi-user.target
     EOF
+
+  # ------------------------------------------------------------
+  # 3) Enable & start
+  # ------------------------------------------------------------
   - sudo systemctl daemon-reload
   - sudo systemctl enable hmi_server.service
   - sudo systemctl start hmi_server.service
