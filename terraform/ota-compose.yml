@@ -5,11 +5,11 @@ services:
     build:
       context: .
       dockerfile: website_app/frontend/DockerFile
+      args:
+        REACT_APP_API_URL: http://backend:80/api
     image: kareemmoataz13/ota-frontend:latest
-    args:
-      REACT_APP_API_URL: http://backend:80/api  
     ports:
-      - "80:80"       
+      - "80:80"
 
   backend:
     build:
@@ -20,9 +20,9 @@ services:
       COSMOSDB_URI:        ${COSMOSDB_URI}
       COSMOSDB_DATABASE:   ${COSMOSDB_DATABASE}
       COSMOSDB_COLLECTION: ${COSMOSDB_COLLECTION}
-      COSMOSDB_KEY: ${COSMOSDB_KEY}
+      COSMOSDB_KEY:        ${COSMOSDB_KEY}
       HEX_STORAGE_ACCOUNT_NAME:   ${HEX_STORAGE_ACCOUNT_NAME}
       HEX_STORAGE_CONTAINER_NAME: ${HEX_STORAGE_CONTAINER_NAME}
       HEX_STORAGE_ACCOUNT_KEY:    ${HEX_STORAGE_ACCOUNT_KEY}
     expose:
-      - "80"             
+      - "80"
