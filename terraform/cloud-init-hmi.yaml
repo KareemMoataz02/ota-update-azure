@@ -63,16 +63,16 @@ runcmd:
     Environment="DATA_DIR=${hmi_data_directory}"
 
     # MongoDB Atlas
-    Environment="MONGO_URI=\${mongodb_uri}"
-    Environment="MONGO_DB=\${mongodb_database}"
-    Environment="MONGO_COLLECTION=\${mongodb_collection}"
-    Environment="MONGO_USER=\${mongodb_user}"
-    Environment="MONGO_PASSWORD=\${mongodb_password}"
+    Environment="MONGO_URI=${mongodb_uri}"
+    Environment="MONGO_DB=${mongodb_database}"
+    Environment="MONGO_COLLECTION=${mongodb_collection}"
+    Environment="MONGO_USER=${mongodb_user}"
+    Environment="MONGO_PASSWORD=${mongodb_password}"
 
-    # Azure Blob Storage
-    Environment="HEX_STORAGE_ACCOUNT_NAME=\${hex_storage_account_name}"
-    Environment="HEX_STORAGE_CONTAINER_NAME=\${hex_storage_container_name}"
-    Environment="HEX_STORAGE_ACCOUNT_KEY=\${hex_storage_account_key}"
+    # Azure Blob
+    Environment="HEX_STORAGE_ACCOUNT_NAME=${hex_storage_account_name}"
+    Environment="HEX_STORAGE_CONTAINER_NAME=${hex_storage_container_name}"
+    Environment="HEX_STORAGE_ACCOUNT_KEY=${hex_storage_account_key}"
 
     ExecStart=/usr/bin/python3 /opt/ota-update-azure/hmi_server/hmi_server/main.py \
       --host $${HOST} \
