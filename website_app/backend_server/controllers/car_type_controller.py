@@ -6,6 +6,7 @@ car_type_bp = Blueprint('car_type', __name__)
 
 
 @car_type_bp.route('/', methods=['GET'])
+@car_type_bp.route('', methods=['GET'])
 def get_all_car_types():
     """Get all car types"""
     service = current_app.db_service.get_car_type_service()
@@ -107,6 +108,7 @@ def get_car_type_by_model(model_number):
 
 
 @car_type_bp.route('/', methods=['POST'])
+@car_type_bp.route('', methods=['POST'])
 def create_car_type():
     """Create a new car type"""
     data = request.json

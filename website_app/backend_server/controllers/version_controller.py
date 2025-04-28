@@ -9,6 +9,7 @@ version_bp = Blueprint('version', __name__)
 
 
 @version_bp.route('/ecu/<ecu_name>/<ecu_model>/', methods=['GET'])
+@version_bp.route('/ecu/<ecu_name>/<ecu_model>', methods=['GET'])
 def get_versions_for_ecu(ecu_name, ecu_model):
     """Get all versions for a specific ECU"""
     # First get the ECU
@@ -31,6 +32,7 @@ def get_versions_for_ecu(ecu_name, ecu_model):
 
 
 @version_bp.route('/ecu/<ecu_name>/<ecu_model>/<version_number>/', methods=['GET'])
+@version_bp.route('/ecu/<ecu_name>/<ecu_model>/<version_number>', methods=['GET'])
 def get_version_details(ecu_name, ecu_model, version_number):
     """Get details for a specific version"""
     # First get the ECU
@@ -65,6 +67,7 @@ def get_version_details(ecu_name, ecu_model, version_number):
 
 
 @version_bp.route('/download/<ecu_name>/<ecu_model>/<version_number>/', methods=['GET'])
+@version_bp.route('/download/<ecu_name>/<ecu_model>/<version_number>', methods=['GET'])
 def download_hex_file(ecu_name, ecu_model, version_number):
     """Download a hex file for a specific version"""
     # First get the ECU
@@ -96,6 +99,7 @@ def download_hex_file(ecu_name, ecu_model, version_number):
 
 
 @version_bp.route('/stream/<ecu_name>/<ecu_model>/<version_number>/', methods=['GET'])
+@version_bp.route('/stream/<ecu_name>/<ecu_model>/<version_number>', methods=['GET'])
 def stream_hex_file(ecu_name, ecu_model, version_number):
     """Stream a hex file in chunks"""
     # First get the ECU
@@ -144,6 +148,7 @@ def stream_hex_file(ecu_name, ecu_model, version_number):
 
 
 @version_bp.route('/compatible/<car_type_name>/', methods=['GET'])
+@version_bp.route('/compatible/<car_type_name>', methods=['GET'])
 def get_compatible_versions(car_type_name):
     """Get all versions compatible with a specific car type"""
     version_service = current_app.db_service.get_version_service()
