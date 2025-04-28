@@ -26,7 +26,7 @@ const api = {
       const response = await fetch(url.toString(), {
         method: "GET",
         headers: {
-          "Content-Type": "application/json",
+          // "Content-Type": "application/json",
           Accept: "application/json",
         },
       });
@@ -53,7 +53,7 @@ const api = {
       const response = await fetch(`${API_CONFIG.baseURL}${endpoint}`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          // "Content-Type": "application/json",
           Accept: "application/json",
         },
         body: JSON.stringify(data),
@@ -81,7 +81,7 @@ const api = {
       const response = await fetch(`${API_CONFIG.baseURL}${endpoint}`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
+          // "Content-Type": "application/json",
           Accept: "application/json",
         },
         body: JSON.stringify(data),
@@ -109,7 +109,7 @@ const api = {
       const response = await fetch(`${API_CONFIG.baseURL}${endpoint}`, {
         method: "PATCH",
         headers: {
-          "Content-Type": "application/json",
+          // "Content-Type": "application/json",
           Accept: "application/json",
         },
         body: JSON.stringify(data),
@@ -136,7 +136,7 @@ const api = {
       const response = await fetch(`${API_CONFIG.baseURL}${endpoint}` , {
         method: "DELETE",
         headers: {
-          "Content-Type": "application/json",
+          // "Content-Type": "application/json",
           Accept: "application/json",
         },
       });
