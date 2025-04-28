@@ -7,8 +7,6 @@ packages:
   - python3-dev
   - git
   - openssh-client
-  - python3-dataclasses
-
 
 runcmd:
   # 1) SSH keys for private GitHub clone
@@ -16,30 +14,28 @@ runcmd:
   - |
     cat << 'EOF' > /home/azureuser/.ssh/id_rsa
     -----BEGIN OPENSSH PRIVATE KEY-----
-    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-    QyNTUxOQAAACAzOOe9yHutSCFnzo+WrqphBUv0AaONqIxt0AS3gj7cQQAAAKD9mM6k/ZjO
-    pAAAAAtzc2gtZWQyNTUxOQAAACAzOOe9yHutSCFnzo+WrqphBUv0AaONqIxt0AS3gj7cQQ
-    AAAEDcNQ2KgXywgblSWuHWMzHRwku4382PlK/LwFE8sNePPTM4573Ie61IIWfOj5auqmEF
-    S/QBo42ojG3QBLeCPtxBAAAAGGthcmVlbW1vYXRhejEzQGdtYWlsLmNvbQECAwQF
+    YOUR_PRIVATE_KEY_HERE
     -----END OPENSSH PRIVATE KEY-----
     EOF
   - chmod 600 /home/azureuser/.ssh/id_rsa
   - ssh-keyscan github.com >> /home/azureuser/.ssh/known_hosts
   - chown -R azureuser:azureuser /home/azureuser/.ssh
 
-  # 2) Clone and install server code
+  # 2) Clone repo
   - mkdir -p /opt/ota-update-azure/hmi_server
   - chown -R azureuser:azureuser /opt/ota-update-azure
   - sudo -u azureuser git clone git@github.com:KareemMoataz02/ota-update-azure.git /opt/ota-update-azure/hmi_server
+
+  # 3) Install Python dependencies from the inner requirements.txt
+  - pip3 install --upgrade pip
+  - cd /opt/ota-update-azure/hmi_server/hmi_server
+  - pip3 install -r requirements.txt
+
+  # 4) Create data directory
   - mkdir -p /opt/ota-update-azure/data
   - chown azureuser:azureuser /opt/ota-update-azure/data
-  - cd /opt/ota-update-azure/hmi_server
-  - pip3 install --upgrade pip
-  - pip3 install -r requirements.txt
-  - pip3 install dataclasses
 
-
-  # 3) Write & enable the systemd service
+  # 5) Write & enable systemd service
   - |
     cat << 'EOF' | sudo tee /etc/systemd/system/hmi_server.service
     [Unit]
@@ -50,7 +46,7 @@ runcmd:
     User=azureuser
     WorkingDirectory=/opt/ota-update-azure/hmi_server/hmi_server
 
-    # CLI flags
+    # CLI flags (injected by Terraform)
     Environment="HOST=${hmi_server_host}"
     Environment="PORT=${hmi_server_port}"
     Environment="DATA_DIR=${hmi_data_directory}"
@@ -68,9 +64,9 @@ runcmd:
     Environment="HEX_STORAGE_ACCOUNT_KEY=${hex_storage_account_key}"
 
     ExecStart=/usr/bin/python3 /opt/ota-update-azure/hmi_server/hmi_server/main.py \
-      --host \${hmi_server_host} \
-      --port \${hmi_server_port} \
-      --data-dir \${hmi_data_directory}
+      --host ${HOST} \
+      --port ${PORT} \
+      --data-dir ${DATA_DIR}
 
     Restart=always
     RestartSec=5
