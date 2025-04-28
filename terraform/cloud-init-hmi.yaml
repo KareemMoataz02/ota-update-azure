@@ -2,10 +2,13 @@
 package_update: true
 packages:
   - python3-pip
+  - python3-setuptools
+  - python3-distutils
   - python3-dev
   - git
   - openssh-client
   - python3-dataclasses
+
 
 runcmd:
   # 1) SSH keys for private GitHub clone
