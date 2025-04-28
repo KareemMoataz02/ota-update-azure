@@ -26,7 +26,7 @@ runcmd:
   - chown -R azureuser:azureuser /opt/ota-update-azure
   - sudo -u azureuser git clone git@github.com:KareemMoataz02/ota-update-azure.git /opt/ota-update-azure/hmi_server
 
-  # 3) Install Python dependencies from the inner requirements.txt
+  # 3) Install Python dependencies
   - pip3 install --upgrade pip
   - cd /opt/ota-update-azure/hmi_server/hmi_server
   - pip3 install -r requirements.txt
@@ -35,7 +35,7 @@ runcmd:
   - mkdir -p /opt/ota-update-azure/data
   - chown azureuser:azureuser /opt/ota-update-azure/data
 
-  # 5) Write & enable systemd service
+  # 5) Write & enable the systemd service
   - |
     cat << 'EOF' | sudo tee /etc/systemd/system/hmi_server.service
     [Unit]
@@ -64,9 +64,9 @@ runcmd:
     Environment="HEX_STORAGE_ACCOUNT_KEY=${hex_storage_account_key}"
 
     ExecStart=/usr/bin/python3 /opt/ota-update-azure/hmi_server/hmi_server/main.py \
-      --host ${HOST} \
-      --port ${PORT} \
-      --data-dir ${DATA_DIR}
+      --host $${HOST} \
+      --port $${PORT} \
+      --data-dir $${DATA_DIR}
 
     Restart=always
     RestartSec=5
