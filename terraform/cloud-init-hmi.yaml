@@ -5,6 +5,7 @@ packages:
   - python3-dev
   - git
   - openssh-client
+  - python3-dataclasses
 
 runcmd:
   # 1) SSH keys for private GitHub clone
@@ -32,6 +33,8 @@ runcmd:
   - cd /opt/ota-update-azure/hmi_server
   - pip3 install --upgrade pip
   - pip3 install -r requirements.txt
+  - pip3 install dataclasses
+
 
   # 3) Write & enable the systemd service
   - |
