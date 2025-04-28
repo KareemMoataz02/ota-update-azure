@@ -8,7 +8,7 @@ packages:
 
 runcmd:
   # ------------------------------------------------------------
-  # 1) Clone & install your HMI server code
+  # Clone & install your HMI server code
   # ------------------------------------------------------------
   - mkdir -p /opt/ota-update-azure
   - chown azureuser:azureuser /opt/ota-update-azure
@@ -18,7 +18,7 @@ runcmd:
   - pip3 install -r requirements.txt
 
   # ------------------------------------------------------------
-  # 2) Write the systemd unit
+  # Write the systemd unit using the exact template-vars
   # ------------------------------------------------------------
   - |
     cat << 'EOF' | sudo tee /etc/systemd/system/hmi_server.service
@@ -30,25 +30,27 @@ runcmd:
     User=azureuser
     WorkingDirectory=/opt/ota-update-azure/hmi_server
 
-    # CLI-flags (from your Terraform custom_data)
+    # CLI flags
     Environment="HOST=${hmi_server_host}"
     Environment="PORT=${hmi_server_port}"
     Environment="DATA_DIR=${hmi_data_directory}"
 
-    # Atlas / Hex Storage
+    # MongoDB Atlas settings
     Environment="MONGO_URI=${mongodb_uri}"
     Environment="MONGO_USER=${mongodb_user}"
     Environment="MONGO_PASSWORD=${mongodb_password}"
     Environment="MONGO_DB=${mongodb_database}"
     Environment="MONGO_COLLECTION=${mongodb_collection}"
+
+    # Azure Blob storage settings
     Environment="HEX_STORAGE_ACCOUNT_NAME=${hex_storage_account_name}"
     Environment="HEX_STORAGE_CONTAINER_NAME=${hex_storage_container_name}"
     Environment="HEX_STORAGE_ACCOUNT_KEY=${hex_storage_account_key}"
 
     ExecStart=/usr/bin/python3 /opt/ota-update-azure/hmi_server/main.py \
-      --host ${HOST} \
-      --port ${PORT} \
-      --data-dir ${DATA_DIR}
+      --host ${hmi_server_host} \
+      --port ${hmi_server_port} \
+      --data-dir ${hmi_data_directory}
 
     Restart=always
     RestartSec=5
@@ -57,9 +59,6 @@ runcmd:
     WantedBy=multi-user.target
     EOF
 
-  # ------------------------------------------------------------
-  # 3) Enable & start
-  # ------------------------------------------------------------
   - sudo systemctl daemon-reload
   - sudo systemctl enable hmi_server.service
   - sudo systemctl start hmi_server.service
