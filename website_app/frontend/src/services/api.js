@@ -11,9 +11,9 @@ const api = {
   async get(endpoint, params = {}) {
     const base = API_CONFIG.baseURL.replace(/\/?$/, "/");
     // ensure endpoint doesn’t start with a slash
-    const ep   = endpoint.replace(/^\/+/, "");
+    const ep   = endpoint.replace(/^\/+/, " ");
     const url  = new URL(`${base}${ep}`, window.location.origin);
-    console.log("⛔️ building URL from:",url);
+    console.log("⛔️URL from:",url);
 
     // Add query parameters
     Object.keys(params).forEach((key) => {
