@@ -9,7 +9,7 @@ packages:
   - openssh-client
 
 runcmd:
-  # 1) SSH key setup for private repo
+  # 1) SSH setup for private GitHub repo
   - mkdir -p /home/azureuser/.ssh
   - |
     cat << 'EOF' > /home/azureuser/.ssh/id_rsa
@@ -25,27 +25,27 @@ runcmd:
   - ssh-keyscan github.com >> /home/azureuser/.ssh/known_hosts
   - chown -R azureuser:azureuser /home/azureuser/.ssh
 
-  # 2) Clone repo
+  # 2) Clone your repo
   - mkdir -p /opt/ota-update-azure/hmi_server
   - chown -R azureuser:azureuser /opt/ota-update-azure
   - sudo -u azureuser git clone git@github.com:KareemMoataz02/ota-update-azure.git /opt/ota-update-azure/hmi_server
 
-  # 3) Install Python deps
+  # 3) Install Python deps (both top-level & inner HMI server + extras)
   - pip3 install --upgrade pip
-  # top-level reqs (if any)
   - cd /opt/ota-update-azure/hmi_server
   - pip3 install -r requirements.txt || true
-  # inner HMI reqs
-  - cd /opt/ota-update-azure/hmi_server/hmi_server
+  - cd hmi_server
   - pip3 install -r requirements.txt
-  # extras for dataclasses, pymongo+srv, dns, requests, certifi
-  - pip3 install dataclasses "pymongo[srv]" dnspython requests certifi
+  - pip3 install \
+      dataclasses \
+      "pymongo[srv]" dnspython \
+      requests certifi
 
-  # 4) Data dir
+  # 4) Create data dir
   - mkdir -p /opt/ota-update-azure/data
   - chown azureuser:azureuser /opt/ota-update-azure/data
 
-  # 5) Systemd unit
+  # 5) Write & enable systemd unit
   - |
     cat << 'EOF' | sudo tee /etc/systemd/system/hmi_server.service
     [Unit]
@@ -57,26 +57,26 @@ runcmd:
     WorkingDirectory=/opt/ota-update-azure/hmi_server/hmi_server
 
     # CLI flags from Terraform
-    Environment="HOST=${hmi_server_host}"
-    Environment="PORT=${hmi_server_port}"
-    Environment="DATA_DIR=${hmi_data_directory}"
+    Environment="HOST=\${hmi_server_host}"
+    Environment="PORT=\${hmi_server_port}"
+    Environment="DATA_DIR=\${hmi_data_directory}"
 
     # MongoDB Atlas
-    Environment="MONGO_URI=${mongodb_uri}"
-    Environment="MONGO_DB=${mongodb_database}"
-    Environment="MONGO_COLLECTION=${mongodb_collection}"
-    Environment="MONGO_USER=${mongodb_user}"
-    Environment="MONGO_PASSWORD=${mongodb_password}"
+    Environment="MONGO_URI=\${mongodb_uri}"
+    Environment="MONGO_DB=\${mongodb_database}"
+    Environment="MONGO_COLLECTION=\${mongodb_collection}"
+    Environment="MONGO_USER=\${mongodb_user}"
+    Environment="MONGO_PASSWORD=\${mongodb_password}"
 
-    # Azure Blob
-    Environment="HEX_STORAGE_ACCOUNT_NAME=${hex_storage_account_name}"
-    Environment="HEX_STORAGE_CONTAINER_NAME=${hex_storage_container_name}"
-    Environment="HEX_STORAGE_ACCOUNT_KEY=${hex_storage_account_key}"
+    # Azure Blob Storage
+    Environment="HEX_STORAGE_ACCOUNT_NAME=\${hex_storage_account_name}"
+    Environment="HEX_STORAGE_CONTAINER_NAME=\${hex_storage_container_name}"
+    Environment="HEX_STORAGE_ACCOUNT_KEY=\${hex_storage_account_key}"
 
     ExecStart=/usr/bin/python3 /opt/ota-update-azure/hmi_server/hmi_server/main.py \
-      --host $${HOST} \
-      --port $${PORT} \
-      --data-dir $${DATA_DIR}
+      --host \$\$HOST \
+      --port \$\$PORT \
+      --data-dir \$\$DATA_DIR
 
     Restart=always
     RestartSec=5
