@@ -14,7 +14,11 @@ runcmd:
   - |
     cat << 'EOF' > /home/azureuser/.ssh/id_rsa
     -----BEGIN OPENSSH PRIVATE KEY-----
-    YOUR_PRIVATE_KEY_HERE
+    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+    QyNTUxOQAAACAzOOe9yHutSCFnzo+WrqphBUv0AaONqIxt0AS3gj7cQQAAAKD9mM6k/ZjO
+    pAAAAAtzc2gtZWQyNTUxOQAAACAzOOe9yHutSCFnzo+WrqphBUv0AaONqIxt0AS3gj7cQQ
+    AAAEDcNQ2KgXywgblSWuHWMzHRwku4382PlK/LwFE8sNePPTM4573Ie61IIWfOj5auqmEF
+    S/QBo42ojG3QBLeCPtxBAAAAGGthcmVlbW1vYXRhejEzQGdtYWlsLmNvbQECAwQF
     -----END OPENSSH PRIVATE KEY-----
     EOF
   - chmod 600 /home/azureuser/.ssh/id_rsa
