@@ -6,8 +6,8 @@ services:
       context: .
       dockerfile: website_app/frontend/DockerFile
     image: kareemmoataz13/ota-frontend:latest
-    environment:
-      EXPO_PUBLIC_API_URL: http://backend:80/api
+    args:
+      REACT_APP_API_URL: http://backend:80/api  
     ports:
       - "80:80"       
 

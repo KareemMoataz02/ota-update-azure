@@ -1,6 +1,5 @@
-// config.js
-export const API_CONFIG = {
-  baseURL: "/api/",          
+const API_CONFIG = {
+  baseURL: "/api/",
   endpoints: {
     carTypes: "car-types",
     ecus:     "ecus",
@@ -8,4 +7,5 @@ export const API_CONFIG = {
     requests: "requests",
   },
 };
+
 export default API_CONFIG;
