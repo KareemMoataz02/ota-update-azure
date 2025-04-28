@@ -9,8 +9,11 @@ const api = {
    * @returns {Promise<Object>} - Response data
    */
   async get(endpoint, params = {}) {
-    console.log("⛔️ building URL from:", API_CONFIG.baseURL, endpoint,window.location.origin);
-    const url = new URL(`${API_CONFIG.baseURL}${endpoint}`,window.location.origin);
+    const base = API_CONFIG.baseURL.replace(/\/?$/, "/");
+    // ensure endpoint doesn’t start with a slash
+    const ep   = endpoint.replace(/^\/+/, "");
+    const url  = new URL(`${base}${ep}`, window.location.origin);
+    console.log("⛔️ building URL from:",url);
 
     // Add query parameters
     Object.keys(params).forEach((key) => {
