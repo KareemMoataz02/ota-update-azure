@@ -291,18 +291,18 @@ resource "azurerm_linux_virtual_machine" "hmi_vm" {
   }
 
   custom_data = base64encode(templatefile("cloud-init-hmi.yaml", {
-    hmi_server_host         = "0.0.0.0"
-    hmi_server_port         = "9000"
-    hmi_data_directory      = "/opt/ota-update-azure/data"
-  
-    mongodb_uri             = local.mongo_srv
-    mongodb_user            = mongodbatlas_database_user.app_user.username
-    mongodb_password        = mongodbatlas_database_user.app_user.password
-    mongodb_database        = var.mongodb_database_name
-    mongodb_collection      = var.mongodb_collection_name
-  
+    hmi_server_host    = "0.0.0.0"
+    hmi_server_port    = "9000"
+    hmi_data_directory = "/opt/ota-update-azure/data"
+
+    mongodb_uri        = local.mongo_srv
+    mongodb_user       = mongodbatlas_database_user.app_user.username
+    mongodb_password   = mongodbatlas_database_user.app_user.password
+    mongodb_database   = var.mongodb_database_name
+    mongodb_collection = var.mongodb_collection_name
+
     hex_storage_account_name   = var.hex_storage_account_name
     hex_storage_container_name = azurerm_storage_container.hex_container.name
     hex_storage_account_key    = azurerm_storage_account.hex_storage.primary_access_key
   }))
-  
+}
