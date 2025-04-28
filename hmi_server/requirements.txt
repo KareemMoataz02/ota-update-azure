@@ -2,3 +2,5 @@ pymongo
 requests
 certifi
 dataclasses
+pymongo[srv]
+dnspython
