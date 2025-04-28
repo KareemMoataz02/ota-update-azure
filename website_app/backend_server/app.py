@@ -65,7 +65,7 @@ def create_app(test_config=None):
                 "ecus": "/api/ecus",
                 "versions": "/api/versions",
                 "requests": "/api/requests",
-                "uri": os.environ.get('COSMOSDB_URI')
+                "uri": os.environ.get('MONGO_URI')
             }
         }
 
