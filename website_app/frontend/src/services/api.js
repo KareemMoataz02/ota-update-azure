@@ -13,7 +13,6 @@ const api = {
     // ensure endpoint doesn’t start with a slash
     const ep   = endpoint.replace(/^\/+/, "");
     const url  = new URL(`${base}${ep}`, window.location.origin);
-    console.log("⛔️URL from:",url);
 
     // Add query parameters
     Object.keys(params).forEach((key) => {
