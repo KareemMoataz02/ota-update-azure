@@ -38,8 +38,7 @@ runcmd:
   # 4) Install Python deps inside the venv
   - /opt/ota-update-azure/env/bin/pip install --upgrade pip
   - /opt/ota-update-azure/env/bin/pip install -r /opt/ota-update-azure/hmi_server/requirements.txt
-  - /opt/ota-update-azure/env/bin/pip install dataclasses "pymongo[srv]" dnspython requests certifi azure-storage-blob azure-identity
-
+  - /opt/ota-update-azure/env/bin/pip install python-dotenv dataclasses "pymongo[srv]" dnspython requests certifi azure-storage-blob azure-identity
   # 5) Prepare data directory
   - mkdir -p /opt/ota-update-azure/data
   - chown azureuser:azureuser /opt/ota-update-azure/data
