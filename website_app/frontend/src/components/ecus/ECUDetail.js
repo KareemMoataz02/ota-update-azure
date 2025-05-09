@@ -147,7 +147,9 @@ function ECUDetail({ showAlert }) {
                             <i className="bi bi-eye"></i>
                           </Link>
                           <Link
-                            to={`/versions/download/${ecu.name}/${ecu.model_number}/${version.version_number}`}
+                            onClick={() =>
+                              window.open(version.hex_file_path, "_blank")
+                            }
                             className="btn btn-sm btn-outline-primary"
                           >
                             <i className="bi bi-download"></i>

@@ -78,12 +78,12 @@ function ECUList({ showAlert }) {
           >
             <i className="bi bi-info-circle me-1"></i> Car Type Details
           </Link>
-          <Link
+          {/* <Link
             to={`/ecus/compatible/${carTypeName}`}
             className="btn btn-sm btn-outline-info"
           >
             <i className="bi bi-check-circle me-1"></i> View Compatible ECUs
-          </Link>
+          </Link> */}
         </div>
       </div>
 

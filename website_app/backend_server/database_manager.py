@@ -1,5 +1,4 @@
 import os
-import logging
 import certifi
 from pymongo import MongoClient, errors
 from pymongo.server_api import ServerApi
@@ -7,17 +6,12 @@ from typing import Optional
 import certifi
 
 
-logger = logging.getLogger(__name__)
-
-
 class DatabaseManager:
     def __init__(self, data_directory: str):
-        logger.info(
-            f"Initializing DatabaseManager with data directory: {data_directory}")
         self.data_directory = data_directory
         os.makedirs(data_directory, exist_ok=True)
 
-        # # Read the full SRV URI and target database from environment
+        # Read the full SRV URI and target database from environment
         srv_uri = os.environ["MONGO_URI"]
         if not srv_uri:
             raise ValueError(
@@ -37,9 +31,7 @@ class DatabaseManager:
             )
             # Verify the connection
             self.client.admin.command("ping")
-            logger.info("Connected to MongoDB Atlas cluster")
         except errors.PyMongoError as e:
-            logger.error(f"Failed to connect to MongoDB Atlas: {e}")
             raise
 
         # Select database
@@ -63,7 +55,6 @@ class DatabaseManager:
 
     def _initialize_db(self):
         """Create indexes and ensure collections exist"""
-        logger.info("Initializing database indexes")
 
         try:
             # Fix for duplicate key error: First, we'll clean up any duplicates in the versions collection
@@ -75,13 +66,11 @@ class DatabaseManager:
 
             # Name index
             if 'name_1' not in car_types_index_names:
-                logger.info("Creating index on car_types.name")
                 self.car_types_collection.create_index(
                     "name")  # Removed unique constraint
 
             # Model number index
             if 'model_number_1' not in car_types_index_names:
-                logger.info("Creating index on car_types.model_number")
                 self.car_types_collection.create_index(
                     "model_number")  # Removed unique constraint
 
@@ -90,8 +79,6 @@ class DatabaseManager:
             ecus_index_names = [idx['name'] for idx in ecus_indexes]
 
             if 'name_1_model_number_1' not in ecus_index_names:
-                logger.info(
-                    "Creating compound index on ecus.name and ecus.model_number")
                 self.ecus_collection.create_index(
                     # Removed unique constraint
                     [("name", 1), ("model_number", 1)])
@@ -101,8 +88,6 @@ class DatabaseManager:
             versions_index_names = [idx['name'] for idx in versions_indexes]
 
             if 'version_number_1_hex_file_path_1' not in versions_index_names:
-                logger.info(
-                    "Creating compound index on versions.version_number and versions.hex_file_path")
                 self.versions_collection.create_index(
                     # No unique constraint
                     [("version_number", 1), ("hex_file_path", 1)])
@@ -112,8 +97,6 @@ class DatabaseManager:
             requests_index_names = [idx['name'] for idx in requests_indexes]
 
             if 'car_id_1_timestamp_-1' not in requests_index_names:
-                logger.info(
-                    "Creating compound index on requests.car_id and requests.timestamp")
                 self.requests_collection.create_index(
                     [("car_id", 1), ("timestamp", -1)])
 
@@ -124,18 +107,14 @@ class DatabaseManager:
                                              for idx in download_requests_indexes]
 
             if 'car_id_1_timestamp_-1' not in download_requests_index_names:
-                logger.info(
-                    "Creating compound index on download_requests.car_id and download_requests.timestamp")
                 self.download_requests_collection.create_index(
                     [("car_id", 1), ("timestamp", -1)])
 
             if 'status_1' not in download_requests_index_names:
-                logger.info("Creating index on download_requests.status")
                 self.download_requests_collection.create_index("status")
 
-            logger.info("Database indexes initialized successfully")
         except Exception as e:
-            logger.error(f"Error initializing database indexes: {str(e)}")
+            raise e
             # Continue even if indexes fail - they're for performance, not functionality
 
     def _clean_duplicates_in_versions(self):
@@ -154,8 +133,6 @@ class DatabaseManager:
             duplicates = list(self.versions_collection.aggregate(pipeline))
 
             if duplicates:
-                logger.info(
-                    f"Found {len(duplicates)} groups of duplicate versions. Cleaning up...")
 
                 for dup in duplicates:
                     # Keep the first document, remove others
@@ -163,9 +140,8 @@ class DatabaseManager:
                     self.versions_collection.delete_many(
                         {"_id": {"$in": ids_to_remove}})
 
-                logger.info("Duplicate versions cleanup completed")
         except Exception as e:
-            logger.error(f"Error cleaning up duplicate versions: {str(e)}")
+            raise e
 
     def get_hex_file_chunk(self, file_path: str, chunk_size: int, offset: int) -> Optional[bytes]:
         """
@@ -181,24 +157,20 @@ class DatabaseManager:
                 if os.path.exists(relative_path):
                     file_path = relative_path
                 else:
-                    logger.error(
-                        f"Security warning: Attempted to access file outside data directory: {file_path}")
                     return None
 
             # Ensure file exists
             if not os.path.exists(file_path):
-                logger.error(f"File not found: {file_path}")
                 return None
 
             with open(file_path, 'rb') as f:
                 f.seek(offset)
                 chunk = f.read(chunk_size)
-                logger.debug(
-                    f"Read {len(chunk)} bytes from {file_path} at offset {offset}")
+            
                 return chunk
         except Exception as e:
-            logger.error(f"Error reading hex file {file_path}: {str(e)}")
             return None
+
 
     def get_file_size(self, file_path: str) -> int:
         """
@@ -214,21 +186,18 @@ class DatabaseManager:
                 if os.path.exists(relative_path):
                     file_path = relative_path
                 else:
-                    logger.error(
-                        f"Security warning: Attempted to access file outside data directory: {file_path}")
+                    
                     return 0
 
             # Ensure file exists
             if not os.path.exists(file_path):
-                logger.error(f"File not found: {file_path}")
                 return 0
 
             size = os.path.getsize(file_path)
-            logger.debug(f"File size for {file_path}: {size} bytes")
             return size
         except Exception as e:
-            logger.error(f"Error getting file size for {file_path}: {str(e)}")
             return 0
+
 
     def save_file(self, file_data: bytes, file_name: str) -> Optional[str]:
         """
@@ -243,10 +212,8 @@ class DatabaseManager:
             with open(file_path, 'wb') as f:
                 f.write(file_data)
 
-            logger.info(f"File saved successfully: {file_path}")
             return file_path
         except Exception as e:
-            logger.error(f"Error saving file {file_name}: {str(e)}")
             return None
 
     def close(self):
@@ -254,6 +221,6 @@ class DatabaseManager:
         try:
             if hasattr(self, 'client') and self.client:
                 self.client.close()
-                logger.info("MongoDB connection closed")
         except Exception as e:
-            logger.error(f"Error closing MongoDB connection: {str(e)}")
+            raise e
+            

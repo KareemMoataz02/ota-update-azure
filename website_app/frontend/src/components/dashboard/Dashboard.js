@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import carTypeService from "../../services/carTypeService";
-import requestService from "../../services/requestService";
 import Loading from "../common/Loading";
 
 function Dashboard() {

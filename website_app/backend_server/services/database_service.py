@@ -2,7 +2,6 @@ from database_manager import DatabaseManager
 from services.car_type_service import CarTypeService
 from services.ecu_service import ECUService
 from services.version_service import VersionService
-from services.request_service import RequestService
 
 class DatabaseService:
     """
@@ -18,7 +17,6 @@ class DatabaseService:
         self.db_manager.get_car_type_service = self.get_car_type_service
         self.db_manager.get_ecu_service = self.get_ecu_service
         self.db_manager.get_version_service = self.get_version_service
-        self.db_manager.get_request_service = self.get_request_service
         
         # Create service instances
         self._car_type_service = None
@@ -44,8 +42,3 @@ class DatabaseService:
             self._version_service = VersionService(self.db_manager)
         return self._version_service
     
-    def get_request_service(self) -> RequestService:
-        """Get or create the request service"""
-        if self._request_service is None:
-            self._request_service = RequestService(self.db_manager)
-        return self._request_service

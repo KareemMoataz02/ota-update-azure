@@ -3,7 +3,6 @@ from flask_cors import CORS
 from controllers.car_type_controller import car_type_bp
 from controllers.ecu_controller import ecu_bp
 from controllers.version_controller import version_bp
-from controllers.request_controller import request_bp
 from services.database_service import DatabaseService
 import os
 
@@ -42,7 +41,6 @@ def create_app(test_config=None):
     app.register_blueprint(car_type_bp, url_prefix='/api/car-types')
     app.register_blueprint(ecu_bp, url_prefix='/api/ecus')
     app.register_blueprint(version_bp, url_prefix='/api/versions')
-    app.register_blueprint(request_bp, url_prefix='/api/requests')
 
     # Add OPTIONS response for all routes
     # @app.after_request

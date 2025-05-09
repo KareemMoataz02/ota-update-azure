@@ -15,6 +15,11 @@ function VersionUpload({ showAlert }) {
   const [selectedCarType, setSelectedCarType] = useState("");
   const [error, setError] = useState(null);
 
+  // Add states for compatible car types
+  const [compatibleCarTypes, setCompatibleCarTypes] = useState([]);
+  const [loadingCompatibleCarTypes, setLoadingCompatibleCarTypes] =
+    useState(false);
+
   const [formData, setFormData] = useState({
     ecuName: "",
     ecuModel: "",
@@ -68,6 +73,42 @@ function VersionUpload({ showAlert }) {
     fetchECUs();
   }, [selectedCarType, showAlert]);
 
+  // Fetch compatible car types when an ECU is selected
+  const fetchCompatibleCarTypes = async (ecuName) => {
+    if (!ecuName) {
+      setCompatibleCarTypes([]);
+      return;
+    }
+
+    try {
+      setLoadingCompatibleCarTypes(true);
+      const response = await carTypeService.getCarTypesByEcuName(ecuName);
+      const data = response?.data || response;
+      setCompatibleCarTypes(Array.isArray(data) ? data : []);
+
+      // Make sure the selected car type is included in compatible car types
+      if (
+        selectedCarType &&
+        !formData.compatibleCarTypes.includes(selectedCarType)
+      ) {
+        setFormData((prev) => ({
+          ...prev,
+          compatibleCarTypes: [...prev.compatibleCarTypes, selectedCarType],
+        }));
+      }
+
+      console.log(
+        `Fetched ${data.length} compatible car types for ECU ${ecuName}`
+      );
+    } catch (err) {
+      console.error("Error fetching compatible car types:", err);
+      showAlert("error", "Failed to fetch compatible car types");
+      setCompatibleCarTypes([]);
+    } finally {
+      setLoadingCompatibleCarTypes(false);
+    }
+  };
+
   const handleCarTypeChange = (e) => {
     const carType = e.target.value;
     setSelectedCarType(carType);
@@ -90,6 +131,7 @@ function VersionUpload({ showAlert }) {
         ecuName: "",
         ecuModel: "",
       });
+      setCompatibleCarTypes([]);
       return;
     }
 
@@ -98,7 +140,12 @@ function VersionUpload({ showAlert }) {
       ...formData,
       ecuName: selectedECU.name,
       ecuModel: selectedECU.model_number,
+      // Reset compatible car types when ECU changes
+      compatibleCarTypes: selectedCarType ? [selectedCarType] : [],
     });
+
+    // Fetch compatible car types for this ECU
+    fetchCompatibleCarTypes(selectedECU.name);
   };
 
   const handleFileChange = (e) => {
@@ -117,6 +164,12 @@ function VersionUpload({ showAlert }) {
 
   const handleCompatibleCarTypeToggle = (carType) => {
     if (formData.compatibleCarTypes.includes(carType)) {
+      // Don't allow removal of the selected car type
+      if (carType === selectedCarType) {
+        showAlert("warning", "The source car type must remain compatible");
+        return;
+      }
+
       // Remove the car type if it's already in the list
       setFormData({
         ...formData,
@@ -321,42 +374,67 @@ function VersionUpload({ showAlert }) {
               <label className="form-label">Compatible Car Types</label>
               <div className="card">
                 <div className="card-body">
-                  {carTypes.length > 0 ? (
-                    <div className="row">
-                      {carTypes.map((carType, index) => (
-                        <div className="col-md-4 mb-2" key={index}>
-                          <div className="form-check">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              id={`carType${index}`}
-                              checked={formData.compatibleCarTypes.includes(
-                                carType.name
-                              )}
-                              onChange={() =>
-                                handleCompatibleCarTypeToggle(carType.name)
-                              }
-                            />
-                            <label
-                              className="form-check-label"
-                              htmlFor={`carType${index}`}
-                            >
-                              {carType.name} ({carType.model_number})
-                            </label>
-                          </div>
-                        </div>
-                      ))}
+                  {loadingCompatibleCarTypes ? (
+                    <div className="text-center">
+                      <div
+                        className="spinner-border text-primary"
+                        role="status"
+                      >
+                        <span className="visually-hidden">
+                          Loading compatible car types...
+                        </span>
+                      </div>
+                      <p className="mt-2">Loading compatible car types...</p>
                     </div>
+                  ) : formData.ecuName ? (
+                    compatibleCarTypes.length > 0 ? (
+                      <div className="row">
+                        {compatibleCarTypes.map((carType, index) => (
+                          <div className="col-md-4 mb-2" key={index}>
+                            <div className="form-check">
+                              <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id={`carType${index}`}
+                                checked={formData.compatibleCarTypes.includes(
+                                  carType.name
+                                )}
+                                onChange={() =>
+                                  handleCompatibleCarTypeToggle(carType.name)
+                                }
+                                disabled={carType.name === selectedCarType} // Disable for selected car type
+                              />
+                              <label
+                                className="form-check-label"
+                                htmlFor={`carType${index}`}
+                              >
+                                {carType.name} ({carType.model_number})
+                                {carType.name === selectedCarType && (
+                                  <span className="badge bg-primary ms-1">
+                                    Source
+                                  </span>
+                                )}
+                              </label>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="alert alert-info">
+                        No compatible car types found for this ECU. The source
+                        car type will be used.
+                      </div>
+                    )
                   ) : (
                     <div className="alert alert-warning">
-                      No car types available. Add some car types first.
+                      Please select an ECU to see compatible car types.
                     </div>
                   )}
                 </div>
               </div>
               <small className="text-muted">
                 Select all car types that this firmware version is compatible
-                with
+                with. The source car type is automatically included.
               </small>
             </div>
 

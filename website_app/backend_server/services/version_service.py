@@ -42,6 +42,7 @@ class VersionService:
     def save(self, version: Version) -> Optional[ObjectId]:
         """Save a version and return its ID"""
         try:
+            version.compatible_car_types = [car_type.lower() for car_type in version.compatible_car_types]
             # Prepare version data for saving
             version_data = {
                 "version_number": version.version_number,
@@ -100,13 +101,13 @@ class VersionService:
             # If versions list is provided, filter it
             if versions is not None:
                 for version in versions:
-                    if car_type_name in version.compatible_car_types:
+                    if car_type_name.lower() in version.compatible_car_types:
                         compatible_versions.append(version)
                 return compatible_versions
             
             # Otherwise, query the database
             versions_data = list(self.collection.find(
-                {"compatible_car_types": car_type_name}
+                {"compatible_car_types": car_type_name.lower()}
             ))
             
             return self._convert_to_versions(versions_data)

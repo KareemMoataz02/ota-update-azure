@@ -9,7 +9,7 @@ const carTypeService = {
    * @returns {Promise<Array>} List of car types
    */
   async getAllCarTypes() {
-    return api.get(baseEndpoint);
+    return api.get(baseEndpoint) || [];
   },
 
   /**
@@ -74,6 +74,15 @@ const carTypeService = {
    */
   async getCarTypeStatistics() {
     return api.get(`${baseEndpoint}/statistics`);
+  },
+
+  /**
+   * Get all car types that have a specific ECU name
+   * @param {string} ecuName - ECU name
+   * @returns {Promise<Array>} List of car types with this ECU
+   */
+  async getCarTypesByEcuName(ecuName) {
+    return api.get(`${baseEndpoint}/by-ecu/${ecuName}`);
   },
 };
 

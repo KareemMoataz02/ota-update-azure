@@ -110,7 +110,7 @@ const versionService = {
       throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
 
-    return response.json();
+    return await response.json();
   },
 };
 

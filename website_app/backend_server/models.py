@@ -18,7 +18,8 @@ class CarType:
 class ECU:
     """Class representing an Electronic Control Unit"""
     
-    def __init__(self, name: str, model_number: str, versions: List['Version']):
+    def __init__(self, name: str, model_number: str, versions: List['Version'], _id = None):
+        self._id = _id
         self.name = name
         self.model_number = model_number
         self.versions = versions

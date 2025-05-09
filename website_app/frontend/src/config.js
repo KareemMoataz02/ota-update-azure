@@ -1,10 +1,9 @@
 const API_CONFIG = {
-  baseURL: process.env.REACT_APP_API_URL || "/api/",
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api/",
   endpoints: {
     carTypes: "car-types",
-    ecus:     "ecus",
+    ecus: "ecus",
     versions: "versions",
-    requests: "requests",
   },
 };
 

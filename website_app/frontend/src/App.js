@@ -26,13 +26,6 @@ import VersionList from "./components/versions/VersionList";
 import VersionDetail from "./components/versions/VersionDetail";
 import VersionUpload from "./components/versions/VersionUpload";
 
-// Request components
-import RequestList from "./components/requests/RequestList";
-import RequestDetail from "./components/requests/RequestDetail";
-import ServiceRequestForm from "./components/requests/ServiceRequestForm";
-import DownloadRequestForm from "./components/requests/DownloadRequestForm";
-import ActiveDownloads from "./components/requests/ActiveDownloads";
-
 function App() {
   const [alert, setAlert] = useState({ show: false, type: "", message: "" });
 
@@ -125,28 +118,6 @@ function App() {
                     />
                   }
                 />
-
-                {/* Requests */}
-                {/* <Route
-                  path="/requests"
-                  element={<RequestList showAlert={showAlert} />}
-                />
-                <Route
-                  path="/requests/:id"
-                  element={<RequestDetail showAlert={showAlert} />}
-                />
-                <Route
-                  path="/requests/service/new"
-                  element={<ServiceRequestForm showAlert={showAlert} />}
-                />
-                <Route
-                  path="/requests/download/new"
-                  element={<DownloadRequestForm showAlert={showAlert} />}
-                />
-                <Route
-                  path="/requests/download/active"
-                  element={<ActiveDownloads showAlert={showAlert} />}
-                /> */}
               </Routes>
             </main>
           </div>

@@ -172,7 +172,9 @@ function VersionList({ showAlert, isCompatibleView = false }) {
                       </>
                     )}
                     <th>Version Number</th>
-                    <th>Hex File Path</th>
+                    <center>
+                      <th>URI</th>
+                    </center>
                     {!isCompatibleView && <th>Compatible Car Types</th>}
                     <th>Actions</th>
                   </tr>
@@ -219,14 +221,18 @@ function VersionList({ showAlert, isCompatibleView = false }) {
 
                           {isCompatibleView ? (
                             <Link
-                              to={`/versions/download/${version.ecu_name}/${version.ecu_model}/${version.version_number}`}
+                              onClick={() =>
+                                window.open(version.hex_file_path, "_blank")
+                              }
                               className="btn btn-sm btn-outline-primary"
                             >
                               <i className="bi bi-download"></i> Download
                             </Link>
                           ) : (
                             <Link
-                              to={`/versions/download/${ecuName}/${ecuModel}/${version.version_number}`}
+                              onClick={() =>
+                                window.open(version.hex_file_path, "_blank")
+                              }
                               className="btn btn-sm btn-outline-primary"
                             >
                               <i className="bi bi-download"></i> Download
