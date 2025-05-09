@@ -20,7 +20,7 @@ const api = {
         url.searchParams.append(key, params[key]);
       }
     });
-
+    console.log("🔍 GET", url.toString(), "params:", params);
     try {
       const response = await fetch(url.toString(), {
         method: "GET",
