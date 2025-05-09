@@ -40,7 +40,7 @@ runcmd:
   - cd /opt/ota-update-azure/hmi_server/hmi_server
   - pip3 install -r requirements.txt
   # extras for dataclasses, pymongo+srv, dns, requests, certifi
-  - pip3 install dataclasses "pymongo[srv]" dnspython requests certifi
+  - pip3 install dataclasses "pymongo[srv]" dnspython requests certifi azure
 
   # 4) Data dir
   - mkdir -p /opt/ota-update-azure/data
