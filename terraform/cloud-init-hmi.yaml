@@ -4,8 +4,8 @@ packages:
   - python3-pip
   - python3-setuptools
   - python3-distutils
-  - python3-venv
   - python3-dev
+  - python3-venv
   - git
   - openssh-client
 
@@ -26,33 +26,44 @@ runcmd:
   - ssh-keyscan github.com >> /home/azureuser/.ssh/known_hosts
   - chown -R azureuser:azureuser /home/azureuser/.ssh
 
-  # 2) Clone repo
+  # 2) Clone or update repo
   - mkdir -p /opt/ota-update-azure/hmi_server
   - chown -R azureuser:azureuser /opt/ota-update-azure
-  - sudo -u azureuser git clone git@github.com:KareemMoataz02/ota-update-azure.git /opt/ota-update-azure/hmi_server
+  - |
+      if [ -d /opt/ota-update-azure/hmi_server/.git ]; then
+        cd /opt/ota-update-azure/hmi_server && sudo -u azureuser git pull
+      else
+        sudo -u azureuser git clone git@github.com:KareemMoataz02/ota-update-azure.git /opt/ota-update-azure/hmi_server
+      fi
 
-  # 3) Create Python virtual environment and install dependencies
+  # 3) Python venv setup and deps install
   - |
       set -e
       cd /opt/ota-update-azure/hmi_server
       python3 -m venv venv
       chown -R azureuser:azureuser venv
-
-      # Activate venv and install
       . venv/bin/activate
       pip install --upgrade pip
       pip install -r requirements.txt || true
       cd hmi_server
       pip install -r requirements.txt || true
-      pip uninstall -y azure azure-storage azure-storage-blob || true
-      pip install azure-storage-blob==12.19.1 azure-identity dataclasses "pymongo[srv]" dnspython requests certifi pyOpenSSL cryptography
+      pip install \ 
+        dataclasses \ 
+        "pymongo[srv]" \ 
+        dnspython \ 
+        requests \ 
+        certifi \ 
+        azure-storage-blob \ 
+        azure-identity \ 
+        pyOpenSSL \ 
+        cryptography
       deactivate
 
-  # 4) Create data directory
+  # 4) Data dir
   - mkdir -p /opt/ota-update-azure/data
   - chown -R azureuser:azureuser /opt/ota-update-azure/data
 
-  # 5) Write systemd service unit
+  # 5) Systemd service
   - |
       cat << 'EOF' | sudo tee /etc/systemd/system/hmi_server.service
       [Unit]
@@ -74,10 +85,7 @@ runcmd:
       Environment="HEX_STORAGE_CONTAINER_NAME=${hex_storage_container_name}"
       Environment="HEX_STORAGE_ACCOUNT_KEY=${hex_storage_account_key}"
 
-      ExecStart=/opt/ota-update-azure/hmi_server/venv/bin/python /opt/ota-update-azure/hmi_server/hmi_server/main.py \
-        --host $${HOST} \
-        --port $${PORT} \
-        --data-dir $${DATA_DIR}
+      ExecStart=/bin/sh -c '/opt/ota-update-azure/hmi_server/venv/bin/python /opt/ota-update-azure/hmi_server/hmi_server/main.py --host "$$HOST" --port "$$PORT" --data-dir "$$DATA_DIR"'
 
       Restart=always
       RestartSec=5
@@ -86,7 +94,6 @@ runcmd:
       WantedBy=multi-user.target
       EOF
 
-  # 6) Enable and start service
+  # 6) Reload & start
   - sudo systemctl daemon-reload
-  - sudo systemctl enable hmi_server.service
-  - sudo systemctl start hmi_server.service
+  - sudo systemctl enable --now hmi_server.service
