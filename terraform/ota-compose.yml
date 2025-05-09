@@ -6,10 +6,12 @@ services:
       context: .
       dockerfile: website_app/frontend/DockerFile
       args:
-        REACT_APP_API_URL: http://backend:80/api
+        REACT_APP_API_URL: http://localhost:5000/api
     image: kareemmoataz13/ota-frontend:latest
     ports:
       - "80:80"
+    depends_on:
+      - backend
 
   backend:
     build:
@@ -26,3 +28,5 @@ services:
       HEX_STORAGE_ACCOUNT_KEY:    ${HEX_STORAGE_ACCOUNT_KEY}
     expose:
       - "80"
+    ports:
+      - "5000:80"

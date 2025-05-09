@@ -31,13 +31,12 @@ runcmd:
   - chown -R azureuser:azureuser /opt/ota-update-azure
   - sudo -u azureuser git clone git@github.com:KareemMoataz02/ota-update-azure.git /opt/ota-update-azure/hmi_server
 
-  # 3) Create venv and install all Python dependencies in one shell
+  # 3) Create venv & install dependencies in one shell
   - |
+      set -e
       cd /opt/ota-update-azure/hmi_server
       python3 -m venv venv
       chown -R azureuser:azureuser venv
-
-      # Activate and install packages
       . venv/bin/activate
       pip install --upgrade pip
       pip install -r requirements.txt || true
@@ -85,7 +84,7 @@ runcmd:
       WantedBy=multi-user.target
       EOF
 
-  # 6) Enable and start the service
+  # 6) Enable and start service
   - sudo systemctl daemon-reload
   - sudo systemctl enable hmi_server.service
   - sudo systemctl start hmi_server.service
