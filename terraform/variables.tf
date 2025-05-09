@@ -58,8 +58,7 @@ variable "hmi_vm_admin_password" {
 variable "mongodb_database_name" {
   description = "The MongoDB database name within Atlas"
   type        = string
-  # default     = "otaMongoDb"
-  default = "automotive_firmware_db"
+  default     = "otaMongoDb"
 }
 
 variable "mongodb_collection_name" {

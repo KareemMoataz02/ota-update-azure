@@ -1,10 +1,10 @@
-
 #cloud-config
 package_update: true
 packages:
   - python3-pip
   - python3-setuptools
   - python3-distutils
+  - python3-venv
   - python3-dev
   - git
   - openssh-client
@@ -31,23 +31,26 @@ runcmd:
   - chown -R azureuser:azureuser /opt/ota-update-azure
   - sudo -u azureuser git clone git@github.com:KareemMoataz02/ota-update-azure.git /opt/ota-update-azure/hmi_server
 
-  # 3) Install Python deps
-  - pip3 install --upgrade pip
-  # top-level reqs (if any)
+  # 3) Setup Python virtual environment
   - cd /opt/ota-update-azure/hmi_server
-  - pip3 install -r requirements.txt || true
-  # inner HMI reqs
-  - cd /opt/ota-update-azure/hmi_server/hmi_server
-  - pip3 install -r requirements.txt
-  # extras for dataclasses, pymongo+srv, dns, requests, certifi
-  - pip3 uninstall -y azure azure-storage azure-storage-blob || true
-  - pip3 install --upgrade azure-storage-blob==12.19.1 azure-identity dataclasses "pymongo[srv]" dnspython requests certifi
+  - python3 -m venv venv
+  - chown -R azureuser:azureuser /opt/ota-update-azure/hmi_server/venv
 
-  # 4) Data dir
+  # 4) Install Python dependencies inside venv
+  - . /opt/ota-update-azure/hmi_server/venv/bin/activate
+  - pip install --upgrade pip
+  - pip install -r requirements.txt || true
+  - cd hmi_server
+  - pip install -r requirements.txt || true
+  - pip uninstall -y azure azure-storage azure-storage-blob || true
+  - pip install azure-storage-blob==12.19.1 azure-identity dataclasses "pymongo[srv]" dnspython requests certifi
+  - deactivate
+
+  # 5) Create data directory
   - mkdir -p /opt/ota-update-azure/data
-  - chown azureuser:azureuser /opt/ota-update-azure/data
+  - chown -R azureuser:azureuser /opt/ota-update-azure/data
 
-  # 5) Systemd unit
+  # 6) Write systemd service unit
   - |
     cat << 'EOF' | sudo tee /etc/systemd/system/hmi_server.service
     [Unit]
@@ -57,25 +60,19 @@ runcmd:
     [Service]
     User=azureuser
     WorkingDirectory=/opt/ota-update-azure/hmi_server/hmi_server
-
-    # CLI flags from Terraform
     Environment="HOST=${hmi_server_host}"
     Environment="PORT=${hmi_server_port}"
     Environment="DATA_DIR=${hmi_data_directory}"
-
-    # MongoDB Atlas
     Environment="MONGO_URI=${mongodb_uri}"
     Environment="MONGO_DB=${mongodb_database}"
     Environment="MONGO_COLLECTION=${mongodb_collection}"
     Environment="MONGO_USER=${mongodb_user}"
     Environment="MONGO_PASSWORD=${mongodb_password}"
-
-    # Azure Blob
     Environment="HEX_STORAGE_ACCOUNT_NAME=${hex_storage_account_name}"
     Environment="HEX_STORAGE_CONTAINER_NAME=${hex_storage_container_name}"
     Environment="HEX_STORAGE_ACCOUNT_KEY=${hex_storage_account_key}"
 
-    ExecStart=/usr/bin/python3 /opt/ota-update-azure/hmi_server/hmi_server/main.py \
+    ExecStart=/opt/ota-update-azure/hmi_server/venv/bin/python /opt/ota-update-azure/hmi_server/hmi_server/main.py \
       --host $${HOST} \
       --port $${PORT} \
       --data-dir $${DATA_DIR}
@@ -87,6 +84,7 @@ runcmd:
     WantedBy=multi-user.target
     EOF
 
+  # 7) Enable and start service
   - sudo systemctl daemon-reload
   - sudo systemctl enable hmi_server.service
-  - sudo systemctl start hmi_server.service 
+  - sudo systemctl start hmi_server.service
