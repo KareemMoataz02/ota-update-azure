@@ -56,20 +56,20 @@ runcmd:
     User=azureuser
     WorkingDirectory=/opt/ota-update-azure/hmi_server/hmi_server
 
-    Environment="HOST=\${hmi_server_host}"
-    Environment="PORT=\${hmi_server_port}"
-    Environment="DATA_DIR=\${hmi_data_directory}"
+    Environment="HOST=${hmi_server_host}"
+    Environment="PORT=${hmi_server_port}"
+    Environment="DATA_DIR=${hmi_data_directory}"
 
-    Environment="MONGO_URI=\${mongodb_uri}"
-    Environment="MONGO_DB=\${mongodb_database}"
-    Environment="MONGO_COLLECTION=\${mongodb_collection}"
-    Environment="MONGO_USER=\${mongodb_user}"
-    Environment="MONGO_PASSWORD=\${mongodb_password}"
+    Environment="MONGO_URI=${mongodb_uri}"
+    Environment="MONGO_DB=${mongodb_database}"
+    Environment="MONGO_COLLECTION=${mongodb_collection}"
+    Environment="MONGO_USER=${mongodb_user}"
+    Environment="MONGO_PASSWORD=${mongodb_password}"
 
-    Environment="HEX_STORAGE_ACCOUNT_NAME=\${hex_storage_account_name}"
-    Environment="HEX_STORAGE_CONTAINER_NAME=\${hex_storage_container_name}"
-    Environment="HEX_STORAGE_ACCOUNT_KEY=\${hex_storage_account_key}"
-
+    Environment="HEX_STORAGE_ACCOUNT_NAME=${hex_storage_account_name}"
+    Environment="HEX_STORAGE_CONTAINER_NAME=${hex_storage_container_name}"
+    Environment="HEX_STORAGE_ACCOUNT_KEY=${hex_storage_account_key}"
+  
     ExecStart=/opt/ota-update-azure/env/bin/python /opt/ota-update-azure/hmi_server/hmi_server/main.py \
       --host $HOST \
       --port $PORT \
