@@ -7,9 +7,9 @@ import logging
 from models import *
 from protocol import Protocol
 from database_manager import DatabaseManager
+from bson import ObjectId
 
 logging.basicConfig(level=logging.INFO)
-
 
 class ECUUpdateServer:
     def __init__(self, host: str, port: int, data_directory: str):
@@ -18,8 +18,7 @@ class ECUUpdateServer:
         self.db_manager = DatabaseManager(data_directory)
         self.car_types: List[CarType] = []
         self.active_requests: Dict[str, Request] = {}  # car_id -> Request
-        # car_id -> DownloadRequest
-        self.active_downloads: Dict[str, DownloadRequest] = {}
+        self.active_downloads: Dict[str, DownloadRequest] = {}  # car_id -> DownloadRequest
         self.chunk_size = 8192  # 8KB chunks for file transfer
         self.socket = None
         self.running = False
@@ -31,7 +30,7 @@ class ECUUpdateServer:
             self.car_types = self.db_manager.load_all_data()
             if not self.car_types:
                 raise Exception("Failed to load car types database")
-
+            print(self.car_types)
             # Create and bind socket
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -40,19 +39,17 @@ class ECUUpdateServer:
             self.running = True
 
             logging.info(f"Server started on {self.host}:{self.port}")
-
+            
             # Start accepting connections
             while self.running:
                 try:
-                    client_socket, (client_ip,
-                                    client_port) = self.socket.accept()
+                    client_socket, (client_ip, client_port) = self.socket.accept()
                     client_thread = threading.Thread(
                         target=self.handle_client,
                         args=(client_socket, client_ip, client_port)
                     )
                     client_thread.daemon = True
-                    logging.info(
-                        f"new socket communication received from ip: {str(client_ip)} , port number: {str(client_port)}")
+                    logging.info(f"new socket communication received from ip: {str(client_ip)} , port number: {str(client_port)}")
                     client_thread.start()
                 except Exception as e:
                     if self.running:
@@ -78,26 +75,21 @@ class ECUUpdateServer:
     def handle_client(self, client_socket: socket.socket, client_ip: str, client_port: int):
         """Handle individual client connection"""
         try:
-            logging.info(
-                f"starting new thread handling request from client ip:{client_ip} and port {client_port}")
+            logging.info(f"starting new thread handling request from client ip:{client_ip} and port {client_port}")
             client_socket.settimeout(1000)  # Set timeout for client operations
-
+            
             # Receive initial message
             message = self.receive_message(client_socket)
 
             if not message:
-                logging.error(
-                    f"No initial message received from {client_ip}:{client_port}")
+                logging.error(f"No initial message received from {client_ip}:{client_port}")
                 return
-
-            logging.info(
-                f"received new message from client ip: {client_ip} , message:: {str(message)}")
+            
+            logging.info(f"received new message from client ip: {client_ip} , message:: {str(message)}")  
 
             if message['type'] != Protocol.HANDSHAKE:
-                logging.error(
-                    f"Invalid initial message type from {client_ip}:{client_port}")
-                client_socket.send(Protocol.create_error_message(
-                    400, "Invalid initial message"))
+                logging.error(f"Invalid initial message type from {client_ip}:{client_port}")
+                client_socket.send(Protocol.create_error_message(400, "Invalid initial message"))
                 return
 
             # Extract client information
@@ -106,19 +98,15 @@ class ECUUpdateServer:
             car_id = payload.get('car_id')
 
             if not car_type or not car_id:
-                logging.error(
-                    f"Missing required information in handshake from {client_ip}:{client_port}")
-                client_socket.send(Protocol.create_error_message(
-                    400, "Missing required information"))
+                logging.error(f"Missing required information in handshake from {client_ip}:{client_port}")
+                client_socket.send(Protocol.create_error_message(400, "Missing required information"))
                 return
-
-            logging.info(
-                f"client ip: {client_ip} is a car with car ID: {car_id} and car_type: {car_type}")
+            
+            logging.info(f"client ip: {client_ip} is a car with car ID: {car_id} and car_type: {car_type}")
 
             service_type = ServiceType(payload['service_type'])
 
-            logging.info(
-                f"client ip: {client_ip} is a car with car ID: {car_id} and car_type: {car_type}. service needed:: {service_type}")
+            logging.info(f"client ip: {client_ip} is a car with car ID: {car_id} and car_type: {car_type}. service needed:: {service_type}")
 
             # Create request object
             request = Request(
@@ -131,100 +119,86 @@ class ECUUpdateServer:
                 metadata=payload.get('metadata', {}),
                 status=RequestStatus.CHECKING_AUTHENTICITY
             )
-            logging.info(
-                f"new Request has been created for car with client ip:{request.ip_address}. status:{request.status}")
+            logging.info(f"new Request has been created for car with client ip:{request.ip_address}. status:{request.status}")
 
             # Authenticate and process request
             if self.check_authentication(request):
-                logging.info(
-                    f"Authentication success for request from client ip:{request.ip_address}")
+                logging.info(f"Authentication success for request from client ip:{request.ip_address}")
                 client_socket.send(Protocol.create_message(Protocol.HANDSHAKE, {
                     'status': 'authenticated',
                     'message': 'Connection established'
                 }))
 
                 # Initial update check
-                logging.info(
-                    f"Performing initial update check for car ID: {car_id}")
+                logging.info(f"Performing initial update check for car ID: {car_id}")
                 self.check_for_updates(request, client_socket)
 
                 # Keep connection alive and handle subsequent requests
-                logging.info(
-                    f"Maintaining connection for car ID: {car_id} to handle subsequent requests")
+                logging.info(f"Maintaining connection for car ID: {car_id} to handle subsequent requests")
                 while True:
-                    logging.info(
-                        f"Waiting for next request from car ID: {car_id}")
+                    logging.info(f"Waiting for next request from car ID: {car_id}")
                     message = self.receive_message(client_socket)
-
+                    
                     if not message:
-                        logging.info(
-                            f"Client {car_id} disconnected gracefully")
+                        logging.info(f"Client {car_id} disconnected gracefully")
                         break
 
-                    logging.info(
-                        f"Received request from car ID: {car_id}, message type: {message['type']}")
+                    logging.info(f"Received request from car ID: {car_id}, message type: {message['type']}")
 
                     if message['type'] == Protocol.DOWNLOAD_REQUEST:
-                        logging.info(
-                            f"Processing download request from car ID: {car_id}")
+                        logging.info(f"Processing download request from car ID: {car_id}")
                         request.service_type = ServiceType.DOWNLOAD_UPDATE
                         request.metadata = message['payload']
                         self.handle_download_request(request, client_socket)
-                        logging.info(
-                            f"Completed download request processing for car ID: {car_id}")
-
+                        logging.info(f"Completed download request processing for car ID: {car_id}")
+                    
                     elif message['type'] == Protocol.UPDATE_CHECK:
-                        logging.info(
-                            f"Processing update check request from car ID: {car_id}")
+                        logging.info(f"Processing update check request from car ID: {car_id}")
                         request.service_type = ServiceType.CHECK_FOR_UPDATE
                         request.metadata = message['payload']
                         self.check_for_updates(request, client_socket)
-                        logging.info(
-                            f"Completed update check for car ID: {car_id}")
-
+                        logging.info(f"Completed update check for car ID: {car_id}")
+                    
                     else:
-                        logging.warning(
-                            f"Unknown message type '{message['type']}' received from car ID: {car_id}")
+                        logging.warning(f"Unknown message type '{message['type']}' received from car ID: {car_id}")
                         client_socket.send(Protocol.create_error_message(
                             400, f"Unknown message type: {message['type']}"
                         ))
 
             else:
-                logging.info(
-                    f"Authentication failed for request from client ip:{request.ip_address}")
-                client_socket.send(Protocol.create_error_message(
-                    401, "Authentication failed"))
+                logging.info(f"Authentication failed for request from client ip:{request.ip_address}")
+                client_socket.send(Protocol.create_error_message(401, "Authentication failed"))
 
         except socket.timeout:
             logging.error(f"Connection timeout for {client_ip}:{client_port}")
         except ConnectionError as e:
-            logging.error(
-                f"Connection error for {client_ip}:{client_port}: {str(e)}")
+            logging.error(f"Connection error for {client_ip}:{client_port}: {str(e)}")
         except Exception as e:
-            logging.error(
-                f"Error handling client {client_ip}:{client_port}: {str(e)}")
+            logging.error(f"Error handling client {client_ip}:{client_port}: {str(e)}")
         finally:
             try:
-                logging.info(
-                    f"Closing connection for client {client_ip}:{client_port}")
+                logging.info(f"Closing connection for client {client_ip}:{client_port}")
                 client_socket.close()
             except Exception as e:
-                logging.error(
-                    f"Error closing connection for {client_ip}:{client_port}: {str(e)}")
-            logging.info(
-                f"Connection terminated for client {client_ip}:{client_port}")
+                logging.error(f"Error closing connection for {client_ip}:{client_port}: {str(e)}")
+            logging.info(f"Connection terminated for client {client_ip}:{client_port}")
 
     def check_authentication(self, request: Request) -> bool:
         """Authenticate the car request"""
         try:
-            car_type = next((ct for ct in self.car_types
-                             if ct.name == request.car_type), None)
-
+            car_type = next((ct for ct in self.car_types 
+                           if ct.name.lower() == request.car_type.lower()), None)
+            
             if not car_type:
+                print("bazet fl car type")
                 request.status = RequestStatus.NON_AUTHENTICATED
                 return False
 
-            if request.car_id not in car_type.car_ids:
+            print(f"\n\n request.car_id.lower(): {request.car_id.lower()}")
+            print(f"car_type.car_ids: {car_type.car_ids}")
+            car_type.car_ids = [car_id.lower() for car_id in car_type.car_ids]
+            if request.car_id.lower() not in car_type.car_ids:
+                print("bazet fl id")
                 request.status = RequestStatus.NON_AUTHENTICATED
                 return False
 
@@ -236,14 +210,13 @@ class ECUUpdateServer:
             logging.error(f"Authentication error: {str(e)}")
             request.status = RequestStatus.FAILED
             return False
-
+        
     def allocate_service(self, request: Request, client_socket: socket.socket):
-        logging.info(
-            f"allocating new service with service name:{request.service_type}")
+        logging.info(f"allocating new service with service name:{request.service_type}")
         """Allocate appropriate service based on request type"""
         try:
             request.status = RequestStatus.SERVICE_IN_PROGRESS
-
+            
             if request.service_type == ServiceType.CHECK_FOR_UPDATE:
                 self.check_for_updates(request, client_socket)
             elif request.service_type == ServiceType.DOWNLOAD_UPDATE:
@@ -260,31 +233,27 @@ class ECUUpdateServer:
             ))
 
     def check_for_updates(self, request: Request, client_socket: socket.socket):
-        logging.info(
-            f"checking-for-update method started processing for client:{request.ip_address}")
+        logging.info(f"checking-for-update method started processing for client:{request.ip_address}")
         """Check if updates are available for the car"""
         try:
-            car_type = next((ct for ct in self.car_types
-                             if ct.name == request.car_type), None)
-
+            car_type = next((ct for ct in self.car_types 
+                        if ct.name == request.car_type), None)
+            
             if not car_type:
                 raise Exception("Car type not found")
 
             # Get current versions from metadata
             current_versions = request.metadata.get('ecu_versions', {})
-
+            
             # Check for updates
             updates_needed = car_type.check_for_updates(current_versions)
-            logging.info(
-                f"updates needed response for client with ip:{request.ip_address}")
+            logging.info(f"updates needed response for client with ip:{request.ip_address}")
             # Send response
             response = Protocol.create_update_response(updates_needed)
-
+            
             client_socket.send(response)
-            logging.info(
-                f"updates needed response for client with ip:{request.ip_address} is send successfully with message:{response}")
-            logging.info(
-                f"Request for: {request.ip_address} finished successfully")
+            logging.info(f"updates needed response for client with ip:{request.ip_address} is send successfully with message:{response}")
+            logging.info(f"Request for: {request.ip_address} finished successfully")
             request.status = RequestStatus.FINISHED_SUCCESSFULLY
 
         except Exception as e:
@@ -293,16 +262,21 @@ class ECUUpdateServer:
             client_socket.send(Protocol.create_error_message(
                 500, "Update check failed"
             ))
-
+            
     def handle_download_request(self, request: Request, client_socket: socket.socket):
         """Handle download request for new ECU versions"""
         try:
+            logging.info(f"starting new download request for client with ip:{request.ip_address} on port:{request.port}")
             # Get download information from metadata
             required_versions = request.metadata.get('required_versions', {})
             old_versions = request.metadata.get('old_versions', {})
 
+            file_offsets = request.metadata.get('file_offsets', {})
+            print(f"\n\nserver: file_offsets: {file_offsets}\n\n")
+            
             if not required_versions:
                 raise Exception("No versions specified for download")
+
 
             # Create download request
             download_request = DownloadRequest(
@@ -314,11 +288,13 @@ class ECUUpdateServer:
                 required_versions=required_versions,
                 old_versions=old_versions,
                 status=DownloadStatus.PREPARING_FILES,
-                active_transfers={}
+                active_transfers={},
+                file_offsets=file_offsets
+
             )
 
             self.active_downloads[request.car_id] = download_request
-
+            
             # Start download process
             self.send_new_versions(download_request, client_socket)
 
@@ -332,47 +308,57 @@ class ECUUpdateServer:
     def send_new_versions(self, download_request: DownloadRequest, client_socket: socket.socket):
         """Send new ECU versions to client"""
         try:
-            car_type = next((ct for ct in self.car_types
-                             if ct.name == download_request.car_type), None)
-
+            car_type = next((ct for ct in self.car_types 
+                           if ct.name == download_request.car_type), None)
+            
             if not car_type:
                 raise Exception("Car type not found")
 
             download_request.status = DownloadStatus.SENDING_IN_PROGRESS
-
+            
             # Calculate total size and prepare file information
             files_info = {}
             total_size = 0
-
+            
             for ecu_name, version_number in download_request.required_versions.items():
-                ecu = next(
-                    (e for e in car_type.ecus if e.name == ecu_name), None)
+                ecu = next((e for e in car_type.ecus if e.name == ecu_name), None)
                 if not ecu:
                     continue
-
-                version = next((v for v in ecu.versions
-                                if v.version_number == version_number), None)
+                
+                version = next((v for v in ecu.versions 
+                              if v.version_number == version_number), None)
                 if not version:
                     continue
 
-                file_size = self.db_manager.get_file_size(
-                    version.hex_file_path)
+                file_size = self.db_manager.get_file_size(version.hex_file_path)
                 total_size += file_size
+                
+                # Get offset from download_request.files_offset (default to 0)
+                offset = download_request.file_offsets.get(ecu_name, 0)
+
                 files_info[ecu_name] = {
                     'path': version.hex_file_path,
                     'size': file_size,
-                    'transferred': 0
+                    'transferred': offset  # <-- Use offset here
                 }
 
             download_request.total_size = total_size
 
             # Send download start message
+            # start_message = Protocol.create_message(Protocol.DOWNLOAD_START, {
+            #     'total_size': total_size,
+            #     'files': {name: info['size'] for name, info in files_info.items()}
+            # })
+
+            # Send download start message
             start_message = Protocol.create_message(Protocol.DOWNLOAD_START, {
                 'total_size': total_size,
-                'files': {name: info['size'] for name, info in files_info.items()}
+                'files': {name: info['size'] for name, info in files_info.items()},
+                'file_offsets': {name: info['transferred'] for name, info in files_info.items()}
             })
+            
             client_socket.send(start_message)
-
+            logging.info(f"Download Start message for client on ip:{download_request.ip_address} port: {download_request.port} , with message:{start_message}")
             # Wait for client acknowledgment
             ack = self.receive_message(client_socket)
             if not ack or ack['type'] != "DOWNLOAD_ACK":
@@ -387,7 +373,8 @@ class ECUUpdateServer:
                         ecu_name,
                         file_info['path'],
                         file_info['size'],
-                        download_request
+                        download_request,
+                        start_offset=file_info['transferred']  # <-- Pass offset here
                     )
                     successful_transfers += 1
                 except Exception as e:
@@ -416,14 +403,14 @@ class ECUUpdateServer:
                 500, "File transfer failed"
             ))
 
-    def transfer_file(self, client_socket: socket.socket, ecu_name: str,
-                      file_path: str, file_size: int, download_request: DownloadRequest):
+    def transfer_file(self, client_socket: socket.socket, ecu_name: str, 
+                     file_path: str, file_size: int, download_request: DownloadRequest, start_offset: int = 0):
         """Transfer a single file to client"""
         print(f"file_path: {file_path}")
-        offset = 0
+        print(f"File offset: {start_offset}")
+        offset = start_offset
         while offset < file_size:
-            chunk = self.db_manager.get_hex_file_chunk(
-                file_path, self.chunk_size, offset)
+            chunk = self.db_manager.get_hex_file_chunk(file_path, self.chunk_size, offset)
             if not chunk:
                 raise Exception(f"Failed to read chunk from {file_path}")
 
@@ -451,21 +438,19 @@ class ECUUpdateServer:
             while len(length_data) < 10:
                 chunk = client_socket.recv(10 - len(length_data))
                 if not chunk:
-                    logging.error(
-                        "Connection closed by peer while receiving message length")
+                    logging.error("Connection closed by peer while receiving message length")
                     return None
                 length_data += chunk
-
+            
             message_length = int(length_data.decode())
-
+            
             # Receive the actual message
             message_data = b""
             while len(message_data) < message_length:
                 remaining = message_length - len(message_data)
                 chunk = client_socket.recv(min(self.chunk_size, remaining))
                 if not chunk:
-                    logging.error(
-                        "Connection closed by peer while receiving message data")
+                    logging.error("Connection closed by peer while receiving message data")
                     return None
                 message_data += chunk
 
@@ -475,8 +460,7 @@ class ECUUpdateServer:
             logging.error("Socket timeout while receiving message")
             return None
         except ConnectionError as e:
-            logging.error(
-                f"Connection error while receiving message: {str(e)}")
+            logging.error(f"Connection error while receiving message: {str(e)}")
             return None
         except Exception as e:
             logging.error(f"Error receiving message: {str(e)}")

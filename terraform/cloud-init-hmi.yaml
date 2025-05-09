@@ -88,4 +88,4 @@ runcmd:
 
   - sudo systemctl daemon-reload
   - sudo systemctl enable hmi_server.service
-  - sudo systemctl start hmi_server.service
+  - sudo systemctl start hmi_server.service 

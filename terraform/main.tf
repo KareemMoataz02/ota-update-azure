@@ -91,9 +91,16 @@ resource "mongodbatlas_database_user" "app_user" {
   password           = var.mongo_password
   auth_database_name = "admin"
 
+  # read/write on any database
   roles {
-    role_name     = "readWrite"
-    database_name = var.mongodb_database_name
+    role_name     = "readWriteAnyDatabase"
+    database_name = "admin"
+  }
+
+  # database-admin on any database
+  roles {
+    role_name     = "dbAdminAnyDatabase"
+    database_name = "admin"
   }
 }
 
