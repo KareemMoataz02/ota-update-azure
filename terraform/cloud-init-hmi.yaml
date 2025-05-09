@@ -71,9 +71,10 @@ runcmd:
     Environment="HEX_STORAGE_ACCOUNT_KEY=\${hex_storage_account_key}"
 
     ExecStart=/opt/ota-update-azure/env/bin/python /opt/ota-update-azure/hmi_server/hmi_server/main.py \
-      --host \$\$HOST \
-      --port \$\$PORT \
-      --data-dir \$\$DATA_DIR
+      --host $HOST \
+      --port $PORT \
+      --data-dir $DATA_DIR
+
 
     Restart=always
     RestartSec=5
