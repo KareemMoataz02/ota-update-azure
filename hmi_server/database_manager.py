@@ -8,7 +8,7 @@ from azure.storage.blob import BlobServiceClient, BlobClient
 from urllib.parse import urlparse
 # from dotenv import load_dotenv
 
-# Load environment variables from .env file
+# # Load environment variables from .env file
 # load_dotenv()
 
 

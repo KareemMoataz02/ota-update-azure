@@ -1,6 +1,6 @@
 import socket
 
-HOST = "74.243.248.164"
+HOST = "4.161.52.76"
 PORT = 9000
 
 with socket.create_connection((HOST, PORT), timeout=5) as s:
