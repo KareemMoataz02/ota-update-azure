@@ -50,6 +50,9 @@ resource "azurerm_resource_group" "rg" {
 resource "mongodbatlas_project" "app" {
   name   = var.atlas_project_name
   org_id = var.atlas_org_id
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "mongodbatlas_advanced_cluster" "app_cluster" {
@@ -76,6 +79,9 @@ resource "mongodbatlas_advanced_cluster" "app_cluster" {
   # disable backups (not supported on M0)
   backup_enabled         = false
   version_release_system = "LTS"
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 
@@ -135,6 +141,9 @@ resource "azurerm_service_plan" "website_plan" {
   resource_group_name = azurerm_resource_group.rg.name
   os_type             = "Linux"
   sku_name            = "B1"
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_linux_web_app" "website_app" {
@@ -170,6 +179,10 @@ resource "azurerm_linux_web_app" "website_app" {
     Environment = var.environment
     Project     = "OTA-Update"
   }
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes        = [site_config[0].app_settings]
+  }
 }
 
 resource "azapi_update_resource" "compose_patch" {
@@ -195,12 +208,18 @@ resource "azurerm_storage_account" "hex_storage" {
   location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "azurerm_storage_container" "hex_container" {
   name                  = "hexfiles"
   storage_account_id    = azurerm_storage_account.hex_storage.id
   container_access_type = "blob"
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # -------------------------------
@@ -255,6 +274,10 @@ resource "azurerm_public_ip" "hmi_public_ip" {
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Static"
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = [allocation_method]
+  }
 }
 
 resource "azurerm_network_interface" "hmi_nic" {
@@ -267,6 +290,10 @@ resource "azurerm_network_interface" "hmi_nic" {
     subnet_id                     = azurerm_subnet.subnet.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.hmi_public_ip.id
+  }
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = [ip_configuration]
   }
 }
 
@@ -312,7 +339,16 @@ resource "azurerm_linux_virtual_machine" "hmi_vm" {
       hex_storage_account_name   = var.hex_storage_account_name
       hex_storage_container_name = azurerm_storage_container.hex_container.name
       hex_storage_account_key    = azurerm_storage_account.hex_storage.primary_access_key
+
+      rebuild_trigger = timestamp()
     })
   )
-}
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    environment = var.environment
+  }
+}
