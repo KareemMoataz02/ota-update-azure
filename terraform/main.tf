@@ -181,7 +181,6 @@ resource "azurerm_linux_web_app" "website_app" {
   }
   lifecycle {
     create_before_destroy = true
-    ignore_changes        = [site_config[0].app_settings]
   }
 }
 
