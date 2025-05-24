@@ -1,30 +1,30 @@
-output "website_app_default_hostname" {
-  description = "Hostname for the Website App"
-  value       = azurerm_linux_web_app.website_app.default_hostname
-}
+# output "website_app_default_hostname" {
+#   description = "Hostname for the Website App"
+#   value       = azurerm_linux_web_app.website_app.default_hostname
+# }
 
-output "hmi_vm_public_ip" {
-  description = "Public IP address of the HMI Virtual Machine"
-  value       = azurerm_public_ip.hmi_public_ip.ip_address
-}
+# output "hmi_vm_public_ip" {
+#   description = "Public IP address of the HMI Virtual Machine"
+#   value       = azurerm_public_ip.hmi_public_ip.ip_address
+# }
 
-output "env_cosmosdb_uri" {
-  value       = local.mongo_srv
-  description = "SRV URI for local dev"
-  sensitive   = true
-}
+# output "env_cosmosdb_uri" {
+#   value       = local.mongo_srv
+#   description = "SRV URI for local dev"
+#   sensitive   = true
+# }
 
-output "env_cosmosdb_database" {
-  description = "Environment variable assignment for Cosmos DB database name"
-  value       = "COSMOSDB_DATABASE=${var.mongodb_database_name}"
-  sensitive   = true
-}
+# output "env_cosmosdb_database" {
+#   description = "Environment variable assignment for Cosmos DB database name"
+#   value       = "COSMOSDB_DATABASE=${var.mongodb_database_name}"
+#   sensitive   = true
+# }
 
-output "env_cosmosdb_collection" {
-  description = "Environment variable assignment for Cosmos DB collection name"
-  value       = "COSMOSDB_COLLECTION=${var.mongodb_collection_name}"
-  sensitive   = true
-}
+# output "env_cosmosdb_collection" {
+#   description = "Environment variable assignment for Cosmos DB collection name"
+#   value       = "COSMOSDB_COLLECTION=${var.mongodb_collection_name}"
+#   sensitive   = true
+# }
 
 output "env_hex_storage_account_name" {
   description = "Environment variable assignment for HEX storage account name"
