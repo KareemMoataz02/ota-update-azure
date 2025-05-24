@@ -95,17 +95,17 @@ jobs:
         working-directory: terraform
         run: terraform apply -auto-approve
 
-      - name: Terraform Output
-        working-directory: terraform
-        run: terraform output -json env_cosmosdb_database
+      # - name: Terraform Output
+      #   working-directory: terraform
+      #   run: terraform output -json env_cosmosdb_database
 
-      - name: Terraform Output1
-        working-directory: terraform
-        run: terraform output -json env_cosmosdb_uri
+      # - name: Terraform Output1
+      #   working-directory: terraform
+      #   run: terraform output -json env_cosmosdb_uri
 
-      - name: Terraform Output2
-        working-directory: terraform
-        run: terraform output -json env_cosmosdb_collection
+      # - name: Terraform Output2
+      #   working-directory: terraform
+      #   run: terraform output -json env_cosmosdb_collection
       
       - name: Terraform Output3
         working-directory: terraform
