@@ -135,68 +135,68 @@ locals {
 # -------------------------------
 # Website Service Plan & Web App
 # -------------------------------
-# resource "azurerm_service_plan" "website_plan" {
-#   name                = "ota-website-plan"
-#   location            = var.location
-#   resource_group_name = azurerm_resource_group.rg.name
-#   os_type             = "Linux"
-#   sku_name            = "B1"
-#   lifecycle {
-#     create_before_destroy = true
-#   }
-# }
+resource "azurerm_service_plan" "website_plan" {
+  name                = "ota-website-plan"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
+  os_type             = "Linux"
+  sku_name            = "B1"
+  lifecycle {
+    create_before_destroy = true
+  }
+}
 
-# resource "azurerm_linux_web_app" "website_app" {
-#   name                = var.website_app_name
-#   location            = var.location
-#   resource_group_name = azurerm_resource_group.rg.name
-#   service_plan_id     = azurerm_service_plan.website_plan.id
-#   https_only          = true
+resource "azurerm_linux_web_app" "website_app" {
+  name                = var.website_app_name
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
+  service_plan_id     = azurerm_service_plan.website_plan.id
+  https_only          = true
 
-#   identity {
-#     type = "SystemAssigned"
-#   }
+  identity {
+    type = "SystemAssigned"
+  }
 
-#   site_config {
-#     always_on = true
-#   }
+  site_config {
+    always_on = true
+  }
 
-#   app_settings = {
-#     "MONGO_URI"      = local.mongo_srv
-#     "MONGO_USER"     = mongodbatlas_database_user.app_user.username
-#     "MONGO_PASSWORD" = mongodbatlas_database_user.app_user.password
-#     "MONGO_DB"       = var.mongodb_database_name
+  app_settings = {
+    "MONGO_URI"      = local.mongo_srv
+    "MONGO_USER"     = mongodbatlas_database_user.app_user.username
+    "MONGO_PASSWORD" = mongodbatlas_database_user.app_user.password
+    "MONGO_DB"       = var.mongodb_database_name
 
 
-#     "HEX_STORAGE_ACCOUNT_NAME"   = azurerm_storage_account.hex_storage.name
-#     "HEX_STORAGE_CONTAINER_NAME" = azurerm_storage_container.hex_container.name
-#     "HEX_STORAGE_ACCOUNT_KEY"    = azurerm_storage_account.hex_storage.primary_access_key
+    "HEX_STORAGE_ACCOUNT_NAME"   = azurerm_storage_account.hex_storage.name
+    "HEX_STORAGE_CONTAINER_NAME" = azurerm_storage_container.hex_container.name
+    "HEX_STORAGE_ACCOUNT_KEY"    = azurerm_storage_account.hex_storage.primary_access_key
 
-#     "WEBSITES_PORT" = "80"
-#   }
+    "WEBSITES_PORT" = "80"
+  }
 
-#   tags = {
-#     Environment = var.environment
-#     Project     = "OTA-Update"
-#   }
-#   lifecycle {
-#     create_before_destroy = true
-#   }
-# }
+  tags = {
+    Environment = var.environment
+    Project     = "OTA-Update"
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
 
-# resource "azapi_update_resource" "compose_patch" {
-#   depends_on  = [azurerm_linux_web_app.website_app]
-#   resource_id = azurerm_linux_web_app.website_app.id
-#   type        = "Microsoft.Web/sites@2022-03-01"
+resource "azapi_update_resource" "compose_patch" {
+  depends_on  = [azurerm_linux_web_app.website_app]
+  resource_id = azurerm_linux_web_app.website_app.id
+  type        = "Microsoft.Web/sites@2022-03-01"
 
-#   body = jsonencode({
-#     properties = {
-#       siteConfig = {
-#         linuxFxVersion = "COMPOSE|${base64encode(file("${path.module}/ota-compose.yml"))}"
-#       }
-#     }
-#   })
-# }
+  body = jsonencode({
+    properties = {
+      siteConfig = {
+        linuxFxVersion = "COMPOSE|${base64encode(file("${path.module}/ota-compose.yml"))}"
+      }
+    }
+  })
+}
 
 # -------------------------------
 # HEX Files Storage
@@ -301,55 +301,55 @@ resource "azurerm_network_interface_security_group_association" "hmi_nic_associa
   network_security_group_id = azurerm_network_security_group.hmi_nsg.id
 }
 
-# resource "azurerm_linux_virtual_machine" "hmi_vm" {
-#   name                            = var.hmi_vm_name
-#   resource_group_name             = azurerm_resource_group.rg.name
-#   location                        = azurerm_resource_group.rg.location
-#   size                            = "Standard_B1s"
-#   admin_username                  = var.hmi_vm_admin_username
-#   admin_password                  = var.hmi_vm_admin_password
-#   disable_password_authentication = false
-#   network_interface_ids           = [azurerm_network_interface.hmi_nic.id]
+resource "azurerm_linux_virtual_machine" "hmi_vm" {
+  name                            = var.hmi_vm_name
+  resource_group_name             = azurerm_resource_group.rg.name
+  location                        = azurerm_resource_group.rg.location
+  size                            = "Standard_B1s"
+  admin_username                  = var.hmi_vm_admin_username
+  admin_password                  = var.hmi_vm_admin_password
+  disable_password_authentication = false
+  network_interface_ids           = [azurerm_network_interface.hmi_nic.id]
 
-#   os_disk {
-#     caching              = "ReadWrite"
-#     storage_account_type = "Standard_LRS"
-#   }
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
 
-#   source_image_reference {
-#     publisher = "Canonical"
-#     offer     = "UbuntuServer"
-#     sku       = "18.04-LTS"
-#     version   = "latest"
-#   }
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
 
-#   custom_data = base64encode(
-#     templatefile("cloud-init-hmi.yaml", {
-#       hmi_server_host    = "0.0.0.0"
-#       hmi_server_port    = "9000"
-#       hmi_data_directory = "/opt/ota-update-azure/data"
+  custom_data = base64encode(
+    templatefile("cloud-init-hmi.yaml", {
+      hmi_server_host    = "0.0.0.0"
+      hmi_server_port    = "9000"
+      hmi_data_directory = "/opt/ota-update-azure/data"
 
-#       mongodb_uri        = local.mongo_srv
-#       mongodb_user       = mongodbatlas_database_user.app_user.username
-#       mongodb_password   = mongodbatlas_database_user.app_user.password
-#       mongodb_database   = var.mongodb_database_name
-#       mongodb_collection = var.mongodb_collection_name
+      mongodb_uri        = local.mongo_srv
+      mongodb_user       = mongodbatlas_database_user.app_user.username
+      mongodb_password   = mongodbatlas_database_user.app_user.password
+      mongodb_database   = var.mongodb_database_name
+      mongodb_collection = var.mongodb_collection_name
 
-#       hex_storage_account_name   = var.hex_storage_account_name
-#       hex_storage_container_name = azurerm_storage_container.hex_container.name
-#       hex_storage_account_key    = azurerm_storage_account.hex_storage.primary_access_key
+      hex_storage_account_name   = var.hex_storage_account_name
+      hex_storage_container_name = azurerm_storage_container.hex_container.name
+      hex_storage_account_key    = azurerm_storage_account.hex_storage.primary_access_key
 
-#       rebuild_trigger = timestamp()
-#     })
-#   )
+      rebuild_trigger = timestamp()
+    })
+  )
 
-#   lifecycle {
-#     create_before_destroy = true
-#   }
+  lifecycle {
+    create_before_destroy = true
+  }
 
-#   tags = {
-#     environment = var.environment
-#   }
-# }
+  tags = {
+    environment = var.environment
+  }
+}
 
 
